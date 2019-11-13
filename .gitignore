@@ -1,0 +1,7 @@
+﻿# TabNine-Eclipse项目包全局公共忽略清单
+
+# 忽略编译后的二进制文件
+/bin/
+
+# 忽略Eclipse设置文件
+/.settings/

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<plugin>
+
+	<!-- Extension point : The processors to compute content assist for Text Editor -->
+	<extension point="org.eclipse.ui.genericeditor.contentAssistProcessors">
+		<contentAssistProcessor class="com.tabnine.eclipse.TabNineCompletionProcessor"></contentAssistProcessor>
+	</extension>
+	
+	<!-- Extension point : The computer to compute completion proposals for Java Editor -->
+	<extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+	    id="TabNineJavaCompletionProposalComputer"
+	    name="TabNine Proposals">
+		<javaCompletionProposalComputer activate="true" needsSortingAfterFiltering="true" class="com.tabnine.eclipse.TabNineJavaCompletionProposalComputer">
+			<!-- 
+			<partition type="__java_string"/>
+			<partition type="__java_javadoc"/>
+			<partition type="__dftl_partition_content_type"/> 
+			-->
+			<!-- 
+	          If no partition types are specified, the computer is added to all partition types.
+	          See documentation in "Extension Point References" http://help.eclipse.org/index.jsp?topic=/org.eclipse.jdt.doc.isv/reference/extension-points/org_eclipse_jdt_ui_javaCompletionProposalComputer.html
+	    	-->
+		</javaCompletionProposalComputer>
+	</extension>
+
+</plugin>
