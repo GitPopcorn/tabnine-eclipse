@@ -27,6 +27,7 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 
 	// ===== ===== ===== ===== [Member Variables] ===== ===== ===== ===== //
 	
+	/** The application interface of TabNine : TabNineApplication tabNineApplication */
 	@SuppressWarnings("unused")
 	private TabNineApplication tabNineApplication = new TabNineApplicationBasicImpl();
 	

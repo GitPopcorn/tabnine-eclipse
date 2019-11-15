@@ -1,5 +1,9 @@
 package com.tabnine.eclipse.data;
 
+import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.ITextViewer;
+
 /**
  * The arguments of auto-complete request that send to TabNine Core
  * @author ZhouYi
@@ -11,6 +15,11 @@ public class AutocompleteArgs implements TabNineApplicationRequestArguments {
 
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 
+	/** Get the before/after text from current line : int FROM_LINES */
+	public static final int FROM_LINES = 0;
+	
+	/** Get the before/after text from the whole document (not recommended) : int FROM_DOCS */
+	public static final int FROM_DOCS = 0;
 	
 	// ===== ===== ===== ===== [Static Variables] ===== ===== ===== ===== //
 	
@@ -89,6 +98,25 @@ public class AutocompleteArgs implements TabNineApplicationRequestArguments {
 	
 	// ===== ===== ===== ===== [Static Factory Methods] ===== ===== ===== ===== //
 	
+	/**
+	 * Get before/after text and wrap them as current type from specified context object
+	 * @param context The context object
+	 * @return autocompleteArgs The object wrapped as current type
+	 * @author ZhouYi
+	 * @date 2019-11-15 11:10:31
+	 * @description description
+	 * @note note
+	 */
+	public static AutocompleteArgs fromContext(ContentAssistInvocationContext context, int range) {
+		IDocument document = context.getDocument();
+		ITextViewer viewer = context.getViewer();
+		
+		System.out.println(document);
+		System.out.println(viewer);
+		
+		return null;
+		
+	}
 	
 	// ===== ===== ===== ===== [Getters & Setters] ===== ===== ===== ===== //
 	

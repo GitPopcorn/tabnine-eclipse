@@ -8,10 +8,21 @@ import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 
+import com.tabnine.eclipse.application.TabNineApplication;
+import com.tabnine.eclipse.application.impl.TabNineApplicationBasicImpl;
+import com.tabnine.eclipse.data.AutocompleteArgs;
+import com.tabnine.eclipse.data.AutocompleteResponse;
+import com.tabnine.eclipse.data.TabNineCompletionProposal;
+
 public class TabNineJavaCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 	
+	/** The option for text range of computation : int COMPUTE_RANGE_OPTION */
+	public static final int OPTION_COMPUTE_RANGE = AutocompleteArgs.FROM_LINES;
+	
+	/** The option for max results count getting from TabNine : int MAX_NUM_RESULTS */
+	public static final int OPTION_MAX_NUM_RESULTS = 20;
 	
 	// ===== ===== ===== ===== [Static Variables] ===== ===== ===== ===== //
 	
@@ -24,18 +35,26 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 	
 	// ===== ===== ===== ===== [Instance Variables] ===== ===== ===== ===== //
 	
+	/** The application interface of TabNine : TabNineApplication tabNineApplication */
+	private TabNineApplication tabNineApplication = new TabNineApplicationBasicImpl();
 	
 	// ===== ===== ===== ===== [Instance Methods] ===== ===== ===== ===== //
 	
 	@Override
 	public List<ICompletionProposal> computeCompletionProposals(ContentAssistInvocationContext context,
 			IProgressMonitor monitor) {
-		// STEP Number Text
-//		Document document = context.getDocument();
-//		document.get
+		// STEP Number Get the request from incoming context object
+		AutocompleteArgs autocompleteArgs = AutocompleteArgs.fromContext(context, OPTION_COMPUTE_RANGE);
 		
-		// TODO Auto-generated method stub
-		return null;
+		// STEP Number Complete other settings
+		autocompleteArgs.setMaxNumResults(OPTION_MAX_NUM_RESULTS);
+		
+		// STEP Number Send request
+		AutocompleteResponse response = tabNineApplication.autocomplete(autocompleteArgs);
+		
+		// STEP Number Generate proposals using the context and response, then return it
+		return TabNineCompletionProposal.fromAutocompleteResponse(response);
+		
 	}
 
 	@Override
