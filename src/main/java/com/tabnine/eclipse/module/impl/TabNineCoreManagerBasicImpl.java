@@ -1,10 +1,20 @@
 package com.tabnine.eclipse.module.impl;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.URIUtil;
+import org.osgi.framework.Bundle;
+
+import com.tabnine.eclipse.constant.TabNineConstants;
 import com.tabnine.eclipse.data.TabNineCore;
 import com.tabnine.eclipse.enums.TabNinePlatformInfo;
 import com.tabnine.eclipse.exception.TabNineApplicationException;
@@ -26,11 +36,16 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	
 	// ===== ===== ===== ===== [Static Variables] ===== ===== ===== ===== //
 	
+	/** The folder path to storage TabNine core : {String} tabNineCoreRootFolderPath */
+	private static String tabNineCoreRootFolderPath = null;
+	
+	// ===== ===== ===== ===== [Static Block] ===== ===== ===== ===== //
+	
 	
 	// ===== ===== ===== ===== [Entry Method (For test only)] ===== ===== ===== ===== //
 	
 	public static void main(String[] args) {
-		System.out.println(getLocalTabNineCoreList(TABINE_CORE_ROOT_FOLDER_PATH, TabNinePlatformInfo.getTabNinePlatformInfoMatchedCurrentOS()));
+		System.out.println(getLocalTabNineCoreList(getTabNineCoreRootFolderPath(), TabNinePlatformInfo.getTabNinePlatformInfoMatchedCurrentOS()));
 		
 	}
 	
@@ -91,7 +106,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 		// STEP Number Get core from local storage
 		TabNinePlatformInfo platformInfo = TabNinePlatformInfo.getTabNinePlatformInfoMatchedCurrentOS();
 		List<TabNineCore> localTabNineCoreList = getLocalTabNineCoreList(
-				TABINE_CORE_ROOT_FOLDER_PATH
+				getTabNineCoreRootFolderPath()
 				, platformInfo
 		);
 		
@@ -105,7 +120,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 			String latestVersion = this.tabNineCoreDownloader.getLatestTabNineVersion();
 			String downloadUrlPath = this.tabNineCoreDownloader.getDownloadUrlPath(latestVersion);
 			String destFilePath = generateLocalTabNineCoreFilePath(
-					TABINE_CORE_ROOT_FOLDER_PATH
+					getTabNineCoreRootFolderPath()
 					, latestVersion
 					, platformInfo.toPlatformTypeText()
 					, TABNINE_CORE_FILE_NAME_LOCAL + platformInfo.getSuffixNameOfExecutableFile()
@@ -154,7 +169,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 						// INNER-PART Number Make up the information of latest TabNine Core
 						String downloadUrlPath = tabNineCoreDownloader.getDownloadUrlPath(latestVersion);
 						String destFilePath = generateLocalTabNineCoreFilePath(
-								TABINE_CORE_ROOT_FOLDER_PATH
+								getTabNineCoreRootFolderPath()
 								, latestVersion
 								, platformInfo.toPlatformTypeText()
 								, TABNINE_CORE_FILE_NAME_LOCAL + platformInfo.getSuffixNameOfExecutableFile()
@@ -165,7 +180,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 					
 						// INNER-PART Number Get core from local storage
 						List<TabNineCore> localTabNineCoreList = getLocalTabNineCoreList(
-								TABINE_CORE_ROOT_FOLDER_PATH
+								getTabNineCoreRootFolderPath()
 								, platformInfo
 						);
 						
@@ -190,6 +205,46 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	}
 	
 	// ===== ===== ===== ===== [Static Utility Methods - Utility] ===== ===== ===== ===== //
+	
+	/**
+	 * Get the root folder path which saved primary TabNine core file
+	 * @return path The path got
+	 * @author ZhouYi
+	 * @date 2019-12-01 22:03:43
+	 * @description description
+	 * @note note
+	 */
+	protected static String getTabNineCoreRootFolderPath() {
+		if (tabNineCoreRootFolderPath != null) {
+			return tabNineCoreRootFolderPath;
+			
+		} else {
+			String path = null;
+			
+			try {
+				Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
+				URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
+				File projectRootFolder = URIUtil.toFile(URIUtil.toURI(url));
+				File tabNineCoreRootFolder = new File(projectRootFolder, "bin/tabnine-core");
+				path = tabNineCoreRootFolder.getAbsolutePath();
+				
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			} catch (URISyntaxException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+				
+			}
+			
+			tabNineCoreRootFolderPath = path;
+			
+			return tabNineCoreRootFolderPath;
+			
+		}
+		
+	}
 	
 	/**
 	 * Get local TabNine core list from specified folder
@@ -239,7 +294,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 			
 			// SUBSTEP Number Concatenate core file path
 			String coreFilePath = generateLocalTabNineCoreFilePath(
-					TABINE_CORE_ROOT_FOLDER_PATH
+					getTabNineCoreRootFolderPath()
 					, versionFolder.getName()
 					, platformTypeText
 					, coreFileName

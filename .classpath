@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <classpath>
-	<classpathentry kind="src" output="bin/classes" path="src/main/java"/>
 	<classpathentry kind="src" output="bin/test-classes" path="src/test/java">
 		<attributes>
 			<attribute name="test" value="true"/>
 		</attributes>
 	</classpathentry>
+	<classpathentry kind="src" output="bin/classes" path="src/main/java"/>
 	<classpathentry excluding="**" kind="src" output="bin/classes" path="src/main/resources"/>
 	<classpathentry kind="con" path="org.eclipse.pde.core.requiredPlugins"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER">
@@ -13,6 +13,5 @@
 			<attribute name="maven.pomderived" value="true"/>
 		</attributes>
 	</classpathentry>
-	<classpathentry kind="lib" path="E:/eclipse-workspace-photon/tabnine-eclipse/src/main/resources/lib/gson-2.8.5.jar" sourcepath="C:/Users/QQ370/AppData/Local/Temp/.org.sf.feeling.decompiler1573112622050/source/gson-2.8.5-sources.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

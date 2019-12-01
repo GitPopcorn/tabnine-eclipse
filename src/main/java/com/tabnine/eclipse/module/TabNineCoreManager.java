@@ -1,16 +1,10 @@
 package com.tabnine.eclipse.module;
 
-import java.io.File;
-
 import com.tabnine.eclipse.data.TabNineCore;
 
 public interface TabNineCoreManager {
 	
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
-	
-	/** The folder path to storage TabNine core : {String} TABINE_CORE_ROOT_FOLDER_PATH */
-	public static final String TABINE_CORE_ROOT_FOLDER_PATH = new File(ClassLoader.getSystemResource("").getPath())
-				.getParent() + File.separator + "tabnine-core";
 	
 	/** The name of TabNine core file in local storage : String TABNINE_CORE_FILE_NAME_LOCAL */
 	public static final String TABNINE_CORE_FILE_NAME_LOCAL = "TabNine";

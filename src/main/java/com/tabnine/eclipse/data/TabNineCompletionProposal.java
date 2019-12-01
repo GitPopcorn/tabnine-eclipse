@@ -94,6 +94,12 @@ public class TabNineCompletionProposal implements ICompletionProposal {
 	 * @note note
 	 */
 	public static List<ICompletionProposal> fromAutocompleteResponse(AutocompleteResponse response) {
+		if (response == null) {
+			return null;
+			
+		}
+		
+		
 		return null;
 		
 	}
