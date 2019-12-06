@@ -1,7 +1,12 @@
 package com.tabnine.eclipse.module.impl;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.LineNumberReader;
+import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.ArrayList;
@@ -20,6 +25,7 @@ import com.tabnine.eclipse.enums.TabNinePlatformInfo;
 import com.tabnine.eclipse.exception.TabNineApplicationException;
 import com.tabnine.eclipse.module.TabNineCoreDownloader;
 import com.tabnine.eclipse.module.TabNineCoreManager;
+import com.tabnine.eclipse.util.TabNineIOUtils;
 import com.tabnine.eclipse.util.TabNineLangUtils;
 
 /**
@@ -93,7 +99,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	 * @description description
 	 */
 	protected void initializeTabNineCore(boolean forcibly) {
-		// STEP Number Declare the log variables
+		// STEP Number Declare variables about log
 		String logTitle = "Try to initialize TabNine core"; // Log message title
 		String logMessage = null; // Log message text
 		
@@ -115,6 +121,14 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 		if (localTabNineCoreList.isEmpty()) {
 			// SUBSTEP Number Print log
 			System.err.println(logTitle + " - Cannot find any TabNine core in local storage, try to download a latest one from remote");
+			
+			// SUBSTEP Number Check if the downloader function is available
+			if (!TabNineConstants.IS_TABNINE_CORE_DOWNLOADER_AVAILABLE) {
+				logMessage = logTitle + " - Failed: The local TabNine core dose not exist, and downloader function is unavailable";
+				System.err.println(logMessage);
+				throw new TabNineApplicationException(logMessage);
+				
+			}
 			
 			// SUBSTEP Number Make up the information of latest TabNine Core
 			String latestVersion = this.tabNineCoreDownloader.getLatestTabNineVersion();
@@ -146,6 +160,13 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 			// SUBSTEP Number Get the newest core among local core list
 			sortTabNineCoreByVersion(localTabNineCoreList, true);
 			TabNineCore newestCore = localTabNineCoreList.get(0);
+			
+			// SUBSTEP Number Check if the downloader function is available
+			if (!TabNineConstants.IS_TABNINE_CORE_DOWNLOADER_AVAILABLE) {
+				this.tabNineCore = newestCore;
+				return;
+				
+			}
 			
 			// SUBSTEP Number Start a new thread to find available update for TabNine Core
 			new Thread(new Runnable() {
@@ -215,31 +236,53 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	 * @note note
 	 */
 	protected static String getTabNineCoreRootFolderPath() {
+		// STEP Number Declare variables about log
+		String logTitle = "Try to get the root path of folder hold TabNine core"; // Log message title
+		String logMessage = null; // Log message text
+		
+		// BRANCH Number If the path cache is available, return it
 		if (tabNineCoreRootFolderPath != null) {
 			return tabNineCoreRootFolderPath;
 			
+		// BRANCH Number Or we will load the path
 		} else {
+			// SUBSTEP Number Declare returned variable
 			String path = null;
 			
+			// SUBSTEP Number Try to get path related to the plug-in bundle
 			try {
 				Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
 				URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
 				File projectRootFolder = URIUtil.toFile(URIUtil.toURI(url));
-				File tabNineCoreRootFolder = new File(projectRootFolder, "bin/tabnine-core");
+				File tabNineCoreRootFolder = null;
+				for (int i = 0, length = TABNINE_CORE_FILE_FOLDER_NAMES.size(); i < length; i++) {
+					tabNineCoreRootFolder = new File(projectRootFolder, TABNINE_CORE_FILE_FOLDER_NAMES.get(i));
+					if (tabNineCoreRootFolder.isDirectory()) {
+						break;
+						
+					}
+					
+				}
 				path = tabNineCoreRootFolder.getAbsolutePath();
 				
 			} catch (IOException e) {
-				// TODO Auto-generated catch block
+				logMessage = logTitle + " - Failed: Unknown io exception hanppend.";
+				System.err.println(logMessage);
 				e.printStackTrace();
+				throw new TabNineApplicationException(logMessage, e);
 				
 			} catch (URISyntaxException e) {
-				// TODO Auto-generated catch block
+				logMessage = logTitle + " - Failed: Unknown uri sytax exception hanppend.";
+				System.err.println(logMessage);
 				e.printStackTrace();
+				throw new TabNineApplicationException(logMessage, e);
 				
 			}
 			
+			// SUBSTEP Number Save the path got
 			tabNineCoreRootFolderPath = path;
 			
+			// SUBSTEP Number Return the path
 			return tabNineCoreRootFolderPath;
 			
 		}
@@ -257,7 +300,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	 * @description description
 	 */
 	protected static List<TabNineCore> getLocalTabNineCoreList(String rootFolderPath, TabNinePlatformInfo tabNinePlatformInfo) {
-		// STEP Number Declare the log variables
+		// STEP Number Declare variables about log
 		String logTitle = "Try to get local TabNine core list"; // Log message title
 		String logMessage = null; // Log message text
 		
@@ -306,6 +349,10 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 				coreList.add(new TabNineCore(coreFile, versionFolder.getName(), tabNinePlatformInfo, false, null));
 				continue outerForLoop;
 				
+			// CONDITION Number If the core file is not available, delete it
+			} else {
+				coreFile.delete();
+				
 			}
 			
 		}
@@ -346,29 +393,97 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 	 * @note note
 	 */
 	protected static boolean isTabNineCoreAvailable(File coreFile) {
-		// TODO Number Find the way to validate the availability of TabNine core file
-		return true;
+		// STEP Number Declare variables about log
+		String logTitle = "Try to check if the TabNine core file is available"; // Log message title
+		
+		// STEP Number Validate incoming parameters
+		if ((coreFile == null) || !coreFile.isFile()) {
+			System.err.println(logTitle + " - Failed: the core file  [" + coreFile.getPath() + "] dose not exist or is not a available file");
+			return false;
+			
+		}
+		
+		// STEP Number Try to get the information file of this core file
+		File infoFile = new File(coreFile.getAbsolutePath() + TabNineConstants.INFO_FILE_SUFFIX_NAME);
+		if (!infoFile.isFile()) {
+			System.err.println(logTitle + " - Failed: the concomitant inforamtion file of [" + coreFile.getPath() + "] dose not exist or is not a available file");
+			return false;
+			
+		}
+		
+		// STEP Number Read the information from file and check it
+		String line = null; // The line text read from information file
+		try {
+			// SUBSTEP Number Create reader
+			LineNumberReader reader = new LineNumberReader(
+					new InputStreamReader(
+							new FileInputStream(infoFile), TabNineConstants.INFO_FILE_CHARSET_NAME
+					)
+			);
+			
+			// SUBSTEP Number Read lines until get the key information
+			while ((line = reader.readLine()) != null) {
+				if (line.startsWith(TabNineConstants.INFO_CONTENT_LEGNTH_PREFIX)) {
+					TabNineIOUtils.safelyClose(reader);
+					break;
+					
+				}
+				
+			}
+			
+			// SUBSTEP Number Handle the text, parse content length
+			// NOTE Number The content length come from the downloading HTTP response header, 
+			//   so it is not so stable to ensure that the TabNine core file is available, 
+			//   but it is also the only we can check the core file until we found way to get standard MD5 code of file
+			line = line.replace(TabNineConstants.INFO_CONTENT_LEGNTH_PREFIX, "").trim();
+			long contentLength = Long.parseLong(line);
+			
+			// SUBSTEP Number Compare length information and return result
+			return (contentLength == coreFile.length());
+			
+			
+		} catch (NumberFormatException e) {
+			System.err.println(logTitle + " - Failed: The number text of content length [" + line + "] is not available");
+			e.printStackTrace();
+			
+		} catch (UnsupportedEncodingException e) {
+			System.err.println(logTitle + " - Failed: Unsupported character set type [" + TabNineConstants.INFO_FILE_CHARSET_NAME + "]");
+			e.printStackTrace();
+			
+		} catch (FileNotFoundException e) {
+			System.err.println(logTitle + " - Failed: Unknown file not found exception happended");
+			e.printStackTrace();
+			
+		} catch (IOException e) {
+			System.err.println(logTitle + " - Failed: Unknown io exception happended");
+			e.printStackTrace();
+			
+		}
+		
+		// STEP Number If no judgment got, return false
+		return false;
 		
 	}
 	
 	/**
 	 * Sort the TabNine core object in list by their version
 	 * @param coreList The TabNine core list
-	 * @param desc Is the sort order desc
+	 * @param desc Is the sort order descend
 	 * @author ZhouYi
 	 * @date 2019-11-01 12:59:27
 	 * @description description
 	 * @note note
 	 */
 	protected static void sortTabNineCoreByVersion(List<TabNineCore> coreList, boolean desc) {
+		// STEP Number Create new comparator and do sort
 		coreList.sort(new Comparator<TabNineCore>() {
 
 			@Override
 			public int compare(TabNineCore core1, TabNineCore core2) {
-				// STEP Number Make comparsion
+				// STEP Number Make comparison
 				int comparisonResult = safelyCompareTabNineVersion(core1.getVersion(), core2.getVersion());
 				
-				// STEP Number Return 0 (for insurability)
+				// STEP Number Return comparing result
 				return desc ? - comparisonResult : comparisonResult;
 				
 			}
@@ -419,7 +534,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 			
 		}
 		
-		// STEP Number Return 0 (for insurability)
+		// STEP Number Return 0 (for safety)
 		return comparisonResult;
 		
 	}

@@ -84,14 +84,14 @@ public class TabNineTextUtils {
 	/**
 	 * Join the multirow text list as a single string
 	 * @param textList The text list, each item is a single line
-	 * @param lineBreak The line break word added between lines
+	 * @param separator The separator word added between lines, default to be {@link #LINE_SEPARATOR}
 	 * @return result The text result
 	 * @author ZhouYi
 	 * @date 2019-12-01 17:03:42
 	 * @description description
 	 * @note note
 	 */
-	public static String join(List<? extends CharSequence> textList, String lineBreak) {
+	public static String join(List<? extends CharSequence> textList, String separator) {
 		// STEP Number Validate incoming parameters
 		if (textList == null) {
 			return null;
@@ -100,17 +100,17 @@ public class TabNineTextUtils {
 			return "";
 			
 		}
-		if (lineBreak == null) {
-			lineBreak = LINE_SEPARATOR;
+		if (separator == null) {
+			separator = LINE_SEPARATOR;
 			
 		}
 		
-		// STEP Number Declare string buidler
+		// STEP Number Declare string builder
 		StringBuilder builder = new StringBuilder(textList.get(0));
 		
 		// STEP Number Concatenate text circularly
-		for (int i = 0, length = textList.size(); i < length; i++) {
-			builder.append(lineBreak).append(textList.get(i));
+		for (int i = 1, length = textList.size(); i < length; i++) {
+			builder.append(separator).append(textList.get(i));
 			
 		}
 		

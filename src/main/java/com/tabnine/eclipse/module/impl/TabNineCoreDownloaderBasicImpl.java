@@ -63,7 +63,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 	@Override
 	public String getLatestTabNineVersion() {
 		// STEP Number Declare the log variables
-		String logTitle = "Try to get the latest version of TabNine Core"; // Log message title
+		String logTitle = "Try to get the latest version of TabNine core"; // Log message title
 		String logMessage = null; // Log message text
 		
 		// STEP Number Try to connect the URL to get version
@@ -76,7 +76,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 			throw e;
 			
 		} catch (Exception e) {
-			logMessage = logTitle + " - Failed: Unkown exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown exception hanppend.";
 			System.err.println(logMessage);
 			e.printStackTrace();
 			throw new TabNineApplicationException(logMessage, e);
@@ -132,7 +132,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 	@Override
 	public File downloadTabNineCode(String downloadUrlPath, String destFilePath) {
 		// STEP Number Declare the log variables
-		String logTitle = "Try to download TabNine Core file from [" + downloadUrlPath + "] to [" + destFilePath + "]"; // Log message title
+		String logTitle = "Try to download TabNine core file from [" + downloadUrlPath + "] to [" + destFilePath + "]"; // Log message title
 		String logMessage = null; // Log message text
 		
 		// STEP Number Declare returned result
@@ -140,13 +140,13 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 		
 		// STEP Number Begin to download file
 		try {
-			destFile  = TabNineIOUtils.downLoadFile(downloadUrlPath, destFilePath);
+			destFile = TabNineIOUtils.downLoadFile(downloadUrlPath, destFilePath, true);
 			
 		} catch (TabNineApplicationException e) {
 			throw e;
 			
 		} catch (Exception e) {
-			logMessage = logTitle + " - Failed: Unkown exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown exception hanppend.";
 			System.err.println(logMessage);
 			e.printStackTrace();
 			throw new TabNineApplicationException(logMessage, e);

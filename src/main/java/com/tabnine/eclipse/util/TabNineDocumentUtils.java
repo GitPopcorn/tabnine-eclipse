@@ -27,14 +27,23 @@ public class TabNineDocumentUtils {
 	
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 
-	/** Get the before/after text from current line : int FROM_LINES */
+	/** Get the before/after text from current line : int FROM_LINES
+	 * @note In this mode, the proposals from TabNine will be a little bit more confined
+	 * @note note
+	 */
 	public static final int FROM_LINES = 0;
 	
-	/** Get the before/after text from the whole document (not recommended) : int FROM_DOCS */
+	/** Get the before/after text from the whole document : int FROM_DOCS
+	 * @note In this mode, the proposals from TabNine will be much more as well as the cost grows 
+	 * @note note 
+	 */
 	public static final int FROM_DOCS = 1;
 	
 	/** Get the before/after text from the custom range computer : int FROM_RANGE_COMPUTER */
 	public static final int FROM_RANGE_COMPUTER = 2;
+	
+	/** An empty proposal list to return when no proposal got : List<ICompletionProposal> EMPTY_PROPOSAL_LIST */
+	public static final List<ICompletionProposal> EMPTY_PROPOSAL_LIST = new ArrayList<ICompletionProposal>();
 	
 	// ===== ===== ===== ===== [Static Variables] ===== ===== ===== ===== //
 	
@@ -50,7 +59,7 @@ public class TabNineDocumentUtils {
 	/**
 	 * Extract the arguments information for TabNine auto-complete from {@link ContentAssistInvocationContext}
 	 * @param context The {@link ContentAssistInvocationContext} object which this method is working on
-	 * @param extractionRange The range we got before/after text from context, includes: 
+	 * @param extractionRange The range we extract before/after text from context, includes: 
 	 *     <li>{@link #FROM_LINES}: Get the before/after text from current line</li>
 	 *     <li>{@link #FROM_DOCS}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
@@ -62,6 +71,10 @@ public class TabNineDocumentUtils {
 	 * @note note
 	 */
 	public static AutocompleteArgs extractAutocompleteArgs(ContentAssistInvocationContext context, int extractionRange, IContextRangeComputer rangeComputer) {
+		// STEP Number Declare the log variables
+		String logTitle = "Try to extract arguments information for TabNine auto-complete request from context"; // Log message title
+		String logMessage = null; // Log message text
+		
 		// STEP Number Validate incoming parameters
 		if (context == null) {
 			return null;
@@ -90,9 +103,13 @@ public class TabNineDocumentUtils {
 				IRegion lineInformation = document.getLineInformationOfOffset(invocationOffset);
 				int lineHeadOffset = lineInformation.getOffset(); // The position of current line head in the whole text
 				int lineLength = lineInformation.getLength(); // The length of current line
+				int totalLineNumber = document.getNumberOfLines(); // The total line count of this document
+				int currentLineNumber = document.getLineOfOffset(lineHeadOffset) + 1; // The number of current line (index of line plus one)
 				autocompleteArgs = new AutocompleteArgs();
 				autocompleteArgs.setBefore(document.get(lineHeadOffset, invocationOffset - lineHeadOffset));
 				autocompleteArgs.setAfter(document.get(invocationOffset, lineLength - (invocationOffset - lineHeadOffset)));
+				autocompleteArgs.setRegionIncludesBeginning((currentLineNumber == 1));
+				autocompleteArgs.setRegionIncludesEnd((currentLineNumber == totalLineNumber));
 				
 			} else if (extractionRange == FROM_RANGE_COMPUTER) {
 				if (rangeComputer != null) {
@@ -108,6 +125,8 @@ public class TabNineDocumentUtils {
 			}
 			
 		} catch (BadLocationException e) {
+			logMessage = logTitle + " - Failed: Unknown bad location exception hanppend.";
+			System.err.println(logMessage);
 			e.printStackTrace();
 			return null;
 			
@@ -115,7 +134,7 @@ public class TabNineDocumentUtils {
 		
 		// STEP Number Return the object created
 		return autocompleteArgs;
-				
+		
 	}
 	
 	/**
@@ -134,8 +153,8 @@ public class TabNineDocumentUtils {
 	 */
 	public static List<ICompletionProposal> generateCompletionProposal(ContentAssistInvocationContext context, AutocompleteResponse response, int extractionRange) {
 		// STEP Number Validate incoming parameters
-		if ((context == null) || (response == null)) {
-			return new ArrayList<ICompletionProposal>();
+		if ((context == null) || (response == null) || TabNineLangUtils.isEmpty(response.getResults())) {
+			return EMPTY_PROPOSAL_LIST;
 			
 		}
 		
@@ -161,10 +180,13 @@ public class TabNineDocumentUtils {
 			String documentation = resultEntry.getDocumentation();
 			
 			// SUBSTEP Number Make up text
+			// TODO Number The text we build here contains line separator, 
+			//   but no line breaks shows in additional proposal information, 
+			//   this problem should be fixed later
 			String newText = newPrefix.concat(newSuffix);
-			StringBuilder infoBuilder = new StringBuilder();
-			if (deprecated) {
-				infoBuilder.append("Deprecated.");
+			StringBuilder infoBuilder = new StringBuilder("TabNine");
+			if (TabNineLangUtils.equalsWithNull(deprecated, true)) {
+				infoBuilder.append(TabNineTextUtils.LINE_SEPARATOR).append("Deprecated.");
 				
 			}
 			if (TabNineTextUtils.isNotBlank(detail)) {
@@ -189,21 +211,13 @@ public class TabNineDocumentUtils {
 			proposalList.add(new CompletionProposal(
 				newText
 				, invocationOffset - oldPrefixLength
-				, TabNineTextUtils.safelyGetLength(newPrefix) + TabNineTextUtils.safelyGetLength(newSuffix)
 				, oldPrefixLength
+				, TabNineTextUtils.safelyGetLength(newPrefix)
 				, null
 				, newText
 				, null
 				, additionalProposalInfo
 			));
-			
-			// TEST Number Text
-			System.out.println("TEST-05");
-			System.out.println(newText);
-			System.out.println(invocationOffset - oldPrefixLength);
-			System.out.println(TabNineTextUtils.safelyGetLength(newPrefix) + TabNineTextUtils.safelyGetLength(newSuffix));
-			System.out.println(oldPrefixLength);
-			System.out.println(additionalProposalInfo);
 			
 		}
 		

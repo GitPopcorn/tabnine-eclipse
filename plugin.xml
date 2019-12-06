@@ -7,11 +7,24 @@
 		<contentAssistProcessor class="com.tabnine.eclipse.TabNineCompletionProcessor"></contentAssistProcessor>
 	</extension>
 	
+	<!-- Extension point : The proposal category related to TabNine for Java Editor -->
+	<extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
+		id="TabNineJavaCompletionProposal"
+		name="TabNine Java Proposals"
+	>
+		<proposalCategory icon="icon/tabnine-logo-16x16.png"></proposalCategory>
+	</extension>
+	
 	<!-- Extension point : The computer to compute completion proposals for Java Editor -->
 	<extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
-	    id="TabNineJavaCompletionProposalComputer"
-	    name="TabNine Proposals">
-		<javaCompletionProposalComputer activate="true" needsSortingAfterFiltering="true" class="com.tabnine.eclipse.TabNineJavaCompletionProposalComputer">
+		id="TabNineJavaCompletionProposalComputer"
+		name="TabNine Java Proposal Computer"
+	>
+		<javaCompletionProposalComputer class="com.tabnine.eclipse.TabNineJavaCompletionProposalComputer"
+			activate="true"
+			categoryId="com.tabnine.eclipse.TabNineJavaCompletionProposal"
+			needsSortingAfterFiltering="true"
+		>
 			<!-- 
 			<partition type="__java_string"/>
 			<partition type="__java_javadoc"/>

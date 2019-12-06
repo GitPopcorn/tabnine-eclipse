@@ -1,15 +1,19 @@
 package com.tabnine.eclipse;
 
+import java.io.File;
 import java.util.List;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.URIUtil;
 import org.eclipse.jdt.ui.text.java.ContentAssistInvocationContext;
 import org.eclipse.jdt.ui.text.java.IJavaCompletionProposalComputer;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContextInformation;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IURIEditorInput;
 import org.eclipse.ui.PlatformUI;
 
 import com.tabnine.eclipse.application.TabNineApplication;
@@ -17,13 +21,14 @@ import com.tabnine.eclipse.application.impl.TabNineApplicationBasicImpl;
 import com.tabnine.eclipse.data.AutocompleteArgs;
 import com.tabnine.eclipse.data.AutocompleteResponse;
 import com.tabnine.eclipse.util.TabNineDocumentUtils;
+import com.tabnine.eclipse.util.TabNineTextUtils;
 
 public class TabNineJavaCompletionProposalComputer implements IJavaCompletionProposalComputer {
 
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 	
 	/** The option for text range of computation : int COMPUTE_RANGE_OPTION */
-	public static final int OPTION_COMPUTE_RANGE = TabNineDocumentUtils.FROM_LINES;
+	public static final int OPTION_COMPUTE_RANGE = TabNineDocumentUtils.FROM_DOCS;
 	
 	/** The option for max results count getting from TabNine : int MAX_NUM_RESULTS */
 	public static final int OPTION_MAX_NUM_RESULTS = 20;
@@ -56,29 +61,12 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 			return null;
 			
 		}
-		
-		// TEST Number Text
-		System.out.println("TET-01");
-		System.out.println(context.getViewer().getSelectionProvider().getSelection().getClass().getCanonicalName());
-		
-		// TEST Number Text
-		System.out.println("TET-02");
-		System.out.println(getPathOfCurrentlyEditingFile());
-		
-		// TEST Number Text
-		System.out.println("TEST-03");
-		System.out.println(autocompleteArgs);
-		
 		// STEP Number Complete other settings
 		autocompleteArgs.setFilename(getPathOfCurrentlyEditingFile());
 		autocompleteArgs.setMaxNumResults(OPTION_MAX_NUM_RESULTS);
 		
 		// STEP Number Send request
 		AutocompleteResponse response = tabNineApplication.autocomplete(autocompleteArgs);
-		
-		// TEST Number Text
-		System.out.println("TEST-04");
-		System.out.println(response);
 		
 		// STEP Number Generate proposals using the context and response, then return it
 		return TabNineDocumentUtils.generateCompletionProposal(context, response, OPTION_COMPUTE_RANGE);
@@ -137,19 +125,38 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 		// STEP Number Try to get the editor input
 		IEditorInput editorInput = activeEditor.getEditorInput();
 		
-		// TEST Number Text
-		System.out.println("TEST-07");
-		System.out.println(editorInput.getClass().getCanonicalName());
+		// STEP Number Declare result variable
+		String filePath = null;
 		
-		// STEP Number Get file and check
-		IFile file = editorInput.getAdapter(IFile.class);
-		if (file == null) {
-			return null;
+		// NOTE Number The ways to get path of currently editing file is unstable and rely heavily on the API specification of Eclipse
+		//   If we cannot get file path here, it will be very likely for TabNine core to response empty proposal
+		
+		// STEP Number Try to get file path by {@link IURIEditorInput}
+		IURIEditorInput uriEditorInput = editorInput.getAdapter(IURIEditorInput.class);
+		if (uriEditorInput != null) {
+			File file = URIUtil.toFile(uriEditorInput.getURI());
+			filePath = (file == null) ? null : file.getAbsolutePath();
+			if (TabNineTextUtils.isNotBlank(filePath)) {
+				return filePath;
+				
+			}
 			
 		}
 		
-		// STEP Number Get the file path and return
-		return file.getRawLocation().toOSString();
+		// STEP Number Try to get file path by {@link IFile}
+		IFile file = editorInput.getAdapter(IFile.class);
+		if (file != null) {
+			IPath rawLocation = file.getRawLocation();
+			filePath = (rawLocation == null) ? null : rawLocation.toOSString();
+			if (TabNineTextUtils.isNotBlank(filePath)) {
+				return filePath;
+				
+			}
+			
+		}
+		
+		// STEP Number If no path got from all ways, return null
+		return null;
 		
 	}
 	

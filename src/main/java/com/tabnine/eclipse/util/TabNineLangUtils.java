@@ -1,5 +1,7 @@
 package com.tabnine.eclipse.util;
 
+import java.util.Collection;
+
 /**
  * The LangUtils used in this project (The "TabNine" prefix is just for distinguishing)
  * @author ZhouYi
@@ -96,6 +98,22 @@ public class TabNineLangUtils {
 			return cs.toString().trim().equals(EMPTY_STRING);
 			
 		}
+		
+	}
+	
+	// ===== ===== ===== ===== [Static Utility Methods - Container Utility] ===== ===== ===== ===== //
+	
+	/**
+	 * To judge if the colletion object is null or empty
+	 * @param collection The {@link Collection} object
+	 * @return isEmpty Judgment result
+	 * @author ZhouYi
+	 * @date 2019-12-04 14:55:41
+	 * @description description
+	 * @note note
+	 */
+	public static boolean isEmpty(Collection<?> collection) {
+		return (collection == null) || collection.isEmpty();
 		
 	}
 	

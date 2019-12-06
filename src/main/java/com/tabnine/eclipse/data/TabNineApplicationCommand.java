@@ -87,6 +87,13 @@ public class TabNineApplicationCommand {
 		this.request = request;
 	}
 	
+	// ===== ===== ===== ===== [Standard Method] ===== ===== ===== ===== //
+
+	@Override
+	public String toString() {
+		return "TabNineApplicationCommand [version=" + version + ", request=" + request + "]";
+	}
+	
 	// ===== ===== ===== ===== [SplitLineTitle] ===== ===== ===== ===== //
 	
 }

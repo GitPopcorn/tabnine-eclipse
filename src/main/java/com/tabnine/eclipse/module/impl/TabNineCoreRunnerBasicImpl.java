@@ -213,11 +213,9 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 			// NOTE Number The TabNine core is a in-console-interactive program just like SQLPLUS/FTP/VIM
 			//   So the input stream will not close before you close the process
 			//   If you circularly read response from its input, it will block forever
-			//   Now flow the rule in TabNine official document we just try to get a one-line response after each request
+			//   Now flow the rule in TabNine official document we just try to get a certain-lines response after each request
 			/*
 			while ((line = processReader.readLine()) != null) {
-				System.out.println(line);
-				System.out.println(i++);
 				resultBuilder.append(line);
 				
 			}
@@ -346,7 +344,7 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		String logTitle = "Try to generate TabNine process starting command text that suits specified platform"; // Log message title
 		String logMessage = null; // Log message text
 		
-		// STEP Number Validate incoming paramaters
+		// STEP Number Validate incoming parameters
 		if (platformInfo == null) {
 			platformInfo = getCurrentPlatform();
 			

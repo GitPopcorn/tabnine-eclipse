@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.io.UnsupportedEncodingException;
 import java.io.Writer;
@@ -16,7 +17,10 @@ import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.util.ArrayList;
+import java.util.List;
 
+import com.tabnine.eclipse.constant.TabNineConstants;
 import com.tabnine.eclipse.exception.TabNineApplicationException;
 
 /**
@@ -226,7 +230,6 @@ public class TabNineIOUtils {
 			httpURLConnection.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
 			httpURLConnection.setRequestProperty("User-Agent", "User-Agent: Mozilla/5.0 (Windows NT 10.0; WOW64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/69.0.3497.100 Safari/537.36");
 			
-			
 			// SUBSTEP Number Check the response code
 			int responseCode = httpURLConnection.getResponseCode();
 			if (responseCode >= 300) {
@@ -256,11 +259,11 @@ public class TabNineIOUtils {
 			logMessage = logTitle + " - Failed: The encoding/charset type [" + charsetName + "] is not supported.";
 			
 		} catch (IOException e) {
-			logMessage = logTitle + " - Failed: Unkown IO exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown IO exception hanppend.";
 			
 		} catch (Exception e) {
 			if (logMessage == null) {
-				logMessage = logTitle + " - Failed: Unkown exception hanppend.";
+				logMessage = logTitle + " - Failed: Unknown exception hanppend.";
 			}
 			System.err.println(logMessage);
 			e.printStackTrace();
@@ -278,15 +281,16 @@ public class TabNineIOUtils {
 	
     /**
      * Download file from remote URL and save it to specified destination
-     * @param urlPath
-     * @param filePath
+     * @param urlPath The URL path of remote file
+     * @param filePath The local path to save the file
+     * @param generateInfoFile If it is necessary to generate a concomitant information file
      * @return destFile The file saved
      * @author ZhouYi
      * @date 2019-10-29 下午 17:54:57
      * @description description
      * @note note
      */
-    public static File downLoadFile(String urlPath, String filePath) {
+    public static File downLoadFile(String urlPath, String filePath, boolean generateInfoFile) {
 		// STEP Number Declare the log variables
 		String logTitle = "Try to download file from remote URL"; // Log message title
 		String logMessage = null; // Log message text
@@ -329,6 +333,7 @@ public class TabNineIOUtils {
 		// STEP Number Declare IO source
 		InputStream inputStream = null;
 		FileOutputStream fileOutputStream = null;
+		PrintWriter printWriter = null;
     	
     	// STEP Number Send request and parse response
 		try {
@@ -349,6 +354,25 @@ public class TabNineIOUtils {
 				
 			}
 			
+			// SUBSTEP Number If necessary, get datum and generate information file
+			if (generateInfoFile) {
+				// PART Number Get the content length, make up informations
+				long contentLength = httpURLConnection.getContentLengthLong(); // The content length specified in the header of HTTP response
+				List<String> informations = new ArrayList<String>(); // The informations (multi-line text) of file
+				informations.add(TabNineConstants.INFO_CONTENT_LEGNTH_PREFIX + contentLength);
+				
+				// PART Number Try to create the information file and record informations
+				File infoFile = new File(filePath + TabNineConstants.INFO_FILE_SUFFIX_NAME);
+				infoFile.delete();
+				// NOTE Number To avoid potential JDK compatibility issue, we will not use {@link Files} API here
+				// Files.write(infoFile.toPath(), informations, Charset.forName(TabNineConstants.INFO_FILE_CHARSET_NAME), StandardOpenOption.CREATE_NEW, StandardOpenOption.WRITE);
+				infoFile.createNewFile();
+				printWriter = new PrintWriter(infoFile, TabNineConstants.INFO_FILE_CHARSET_NAME);
+				printWriter.println(TabNineTextUtils.join(informations, TabNineTextUtils.LINE_SEPARATOR));
+				printWriter.flush();
+				
+			}
+			
 			// SUBSTEP Number If the response is available, initial IO source variables
 			inputStream = httpURLConnection.getInputStream();
 			fileOutputStream = new FileOutputStream(destFile);
@@ -365,11 +389,11 @@ public class TabNineIOUtils {
 			logMessage = logTitle + " - Failed: The target file [" + filePath + "] can not be found.";
 			
 		} catch (IOException e) {
-			logMessage = logTitle + " - Failed: Unkown IO exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown IO exception hanppend.";
 			
 		} catch (Exception e) {
 			if (logMessage == null) {
-				logMessage = logTitle + " - Failed: Unkown exception hanppend.";
+				logMessage = logTitle + " - Failed: Unknown exception hanppend.";
 			}
 			System.err.println(logMessage);
 			e.printStackTrace();
@@ -378,6 +402,7 @@ public class TabNineIOUtils {
 		} finally {
 			safelyClose(fileOutputStream);
 			safelyClose(inputStream);
+			safelyClose(printWriter);
 			
 		}
 		
