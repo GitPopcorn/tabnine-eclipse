@@ -28,7 +28,7 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 	
 	/** The option for text range of computation : int COMPUTE_RANGE_OPTION */
-	public static final int OPTION_COMPUTE_RANGE = TabNineDocumentUtils.FROM_DOCS;
+	public static final int OPTION_COMPUTE_RANGE = TabNineDocumentUtils.FROM_DOC;
 	
 	/** The option for max results count getting from TabNine : int MAX_NUM_RESULTS */
 	public static final int OPTION_MAX_NUM_RESULTS = 20;
@@ -61,6 +61,7 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 			return null;
 			
 		}
+		
 		// STEP Number Complete other settings
 		autocompleteArgs.setFilename(getPathOfCurrentlyEditingFile());
 		autocompleteArgs.setMaxNumResults(OPTION_MAX_NUM_RESULTS);

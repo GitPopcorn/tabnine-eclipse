@@ -27,17 +27,17 @@ public class TabNineDocumentUtils {
 	
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 
-	/** Get the before/after text from current line : int FROM_LINES
+	/** Get the before/after text from current line : int FROM_LINE
 	 * @note In this mode, the proposals from TabNine will be a little bit more confined
 	 * @note note
 	 */
-	public static final int FROM_LINES = 0;
+	public static final int FROM_LINE = 0;
 	
-	/** Get the before/after text from the whole document : int FROM_DOCS
+	/** Get the before/after text from the whole document : int FROM_DOC
 	 * @note In this mode, the proposals from TabNine will be much more as well as the cost grows 
 	 * @note note 
 	 */
-	public static final int FROM_DOCS = 1;
+	public static final int FROM_DOC = 1;
 	
 	/** Get the before/after text from the custom range computer : int FROM_RANGE_COMPUTER */
 	public static final int FROM_RANGE_COMPUTER = 2;
@@ -60,8 +60,8 @@ public class TabNineDocumentUtils {
 	 * Extract the arguments information for TabNine auto-complete from {@link ContentAssistInvocationContext}
 	 * @param context The {@link ContentAssistInvocationContext} object which this method is working on
 	 * @param extractionRange The range we extract before/after text from context, includes: 
-	 *     <li>{@link #FROM_LINES}: Get the before/after text from current line</li>
-	 *     <li>{@link #FROM_DOCS}: Get the before/after text from the whole documents(not recommend)</li>
+	 *     <li>{@link #FROM_LINE}: Get the before/after text from current line</li>
+	 *     <li>{@link #FROM_DOC}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
 	 * @param rangeComputer A {@link IContextRangeComputer} object to compute the before/after range from context
 	 * @return autocompleteArgs The arguments extracted 
@@ -91,7 +91,7 @@ public class TabNineDocumentUtils {
 		// STEP Number Fill argument object by different ways according to the method settings
 		try {
 			// BRANCH Number If get before/after text from the whole text
-			if (extractionRange == FROM_DOCS) {
+			if (extractionRange == FROM_DOC) {
 				autocompleteArgs = new AutocompleteArgs();
 				autocompleteArgs.setBefore(document.get(0, invocationOffset));
 				autocompleteArgs.setAfter(document.get(invocationOffset, document.getLength() - invocationOffset));
@@ -99,7 +99,7 @@ public class TabNineDocumentUtils {
 				autocompleteArgs.setRegionIncludesEnd(true);
 				
 			// BRANCH Number If get before/after text from current line
-			} else if (extractionRange == FROM_LINES) {
+			} else if (extractionRange == FROM_LINE) {
 				IRegion lineInformation = document.getLineInformationOfOffset(invocationOffset);
 				int lineHeadOffset = lineInformation.getOffset(); // The position of current line head in the whole text
 				int lineLength = lineInformation.getLength(); // The length of current line
@@ -111,6 +111,7 @@ public class TabNineDocumentUtils {
 				autocompleteArgs.setRegionIncludesBeginning((currentLineNumber == 1));
 				autocompleteArgs.setRegionIncludesEnd((currentLineNumber == totalLineNumber));
 				
+			// BRANCH Number If get before/after text from specified range computer
 			} else if (extractionRange == FROM_RANGE_COMPUTER) {
 				if (rangeComputer != null) {
 					IContextRange range = rangeComputer.computeRange(context);
@@ -142,8 +143,8 @@ public class TabNineDocumentUtils {
 	 * @param context The {@link ContentAssistInvocationContext} object which this method is working on
 	 * @param response The response from TabNine auto-complete application
 	 * @param extractionRange The range we got before/after text from context, includes: 
-	 *     <li>{@link #FROM_LINES}: Get the before/after text from current line</li>
-	 *     <li>{@link #FROM_DOCS}: Get the before/after text from the whole documents(not recommend)</li>
+	 *     <li>{@link #FROM_LINE}: Get the before/after text from current line</li>
+	 *     <li>{@link #FROM_DOC}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
 	 * @return proposalList The proposal list generated
 	 * @author ZhouYi
