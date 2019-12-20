@@ -237,6 +237,9 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 				
 			}
 			
+			// TEST Number Text
+			System.out.println(resultBuilder);
+			
 			// SUBSTEP Number Return the result read
 			return resultBuilder.toString();
 			

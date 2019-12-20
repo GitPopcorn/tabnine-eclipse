@@ -1,6 +1,8 @@
 package com.tabnine.eclipse.util;
 
+import java.lang.reflect.Array;
 import java.util.Collection;
+import java.util.Iterator;
 
 /**
  * The LangUtils used in this project (The "TabNine" prefix is just for distinguishing)
@@ -34,7 +36,7 @@ public class TabNineLangUtils {
 	// ===== ===== ===== ===== [Instance Utility Methods - Utility] ===== ===== ===== ===== //
 	
 	
-	// ===== ===== ===== ===== [Static Utility Methods - Utility] ===== ===== ===== ===== //
+	// ===== ===== ===== ===== [Static Utility Methods - Lang Utility] ===== ===== ===== ===== //
 	
 	/**
 	 * Make a equality judgment with two nullable targets
@@ -116,6 +118,45 @@ public class TabNineLangUtils {
 		return (collection == null) || collection.isEmpty();
 		
 	}
+	
+	/**
+	 * Cast the collection to array
+	 * @param <T> The item type of collection
+	 * @param collection The collection object
+	 * @param type The class object of item type
+	 * @return array The new array we got
+	 * @author ZhouYi
+	 * @date 2019-12-20 11:23:56
+	 * @description description
+	 * @note note
+	 */
+	@SuppressWarnings("unchecked")
+	public static <T> T[] toArray(Collection<T> collection, Class<T> type) {
+		// STEP Number Validate incoming parameters
+		if ((collection == null) || (type == null)) {
+			return null;
+			
+		}
+		
+		// STEP Number Create a new array with the type and initial size
+		T[] array = (T[]) Array.newInstance(type, collection.size());
+		
+		// STEP Number If the collection is not empty, transfer the item inner
+		if (!collection.isEmpty()) {
+			int i = 0;
+			Iterator<T> iterator = collection.iterator();
+			while (iterator.hasNext()) {
+				array[i] = iterator.next();
+				i ++;
+				
+			}
+			
+		}
+		
+		// STEP Number Return the array result
+		return array;
+		
+	} 
 	
 	// ===== ===== ===== ===== [Constructors] ===== ===== ===== ===== //
 	

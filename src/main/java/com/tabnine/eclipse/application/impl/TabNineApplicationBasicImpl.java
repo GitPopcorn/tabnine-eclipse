@@ -224,8 +224,13 @@ public class TabNineApplicationBasicImpl implements TabNineApplication {
 			
 		}
 		
+		// TEST Number Text
+		String json = this.gson.toJson(command);
+		System.out.println(json);
+		return json;
+		
 		// STEP Number Render JSON text and return
-		return this.gson.toJson(command);
+//		return this.gson.toJson(command);
 		
 	}
 	

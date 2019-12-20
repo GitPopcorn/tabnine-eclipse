@@ -15,10 +15,17 @@ import java.io.UnsupportedEncodingException;
 import java.io.Writer;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
 import java.util.List;
+
+import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Platform;
+import org.eclipse.core.runtime.URIUtil;
+import org.osgi.framework.Bundle;
 
 import com.tabnine.eclipse.constant.TabNineConstants;
 import com.tabnine.eclipse.exception.TabNineApplicationException;
@@ -96,6 +103,33 @@ public class TabNineIOUtils {
 			e.printStackTrace();
 			
 		}
+		
+	}
+	
+	// ===== ===== ===== ===== [Static Utility Methods - Plugin Bundle Application] ===== ===== ===== ===== //
+	
+	/**
+	 * Get root resource folder of current plug-in bundle
+	 * @return pluginRootFolder The root resouce folder of current plug-in bundle
+	 * @throws IOException
+	 * @throws URISyntaxException
+	 * @author ZhouYi
+	 * @date 2019-12-20 15:10:51
+	 * @description description
+	 * @note note
+	 */
+	public static File getPluginRootFolder() throws IOException, URISyntaxException {
+		// STEP Number Try to get current plug-in bundle
+		Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
+		
+		// STEP Number Use {@link FileLocator} to get root URL in bundle
+		URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
+		
+		// STEP Number Use {@link URIUtil} to transform the URL as file
+		File pluginRootFolder = URIUtil.toFile(URIUtil.toURI(url));
+		
+		// STEP Number Return the folder we got
+		return pluginRootFolder;
 		
 	}
 	

@@ -16,6 +16,9 @@ public class TabNineTextUtils {
 	/** The line separator in current JVM : String LINE_SEPARATOR */
 	public static final String LINE_SEPARATOR = System.getProperty("line.separator");
 	
+	/** The {@code <br>} element of HTML : String HTML_BREAK_ELEMENT */
+	public static final String HTML_BREAK_ELEMENT = "<br>";
+	
 	/** A constant refer to empty text : String EMPTY_TEXT */
 	public static final String EMPTY_TEXT = "";
 	

@@ -2,7 +2,6 @@ package com.tabnine.eclipse;
 
 import org.eclipse.jface.text.IDocument;
 import org.eclipse.jface.text.ITextViewer;
-import org.eclipse.jface.text.contentassist.CompletionProposal;
 import org.eclipse.jface.text.contentassist.ICompletionProposal;
 import org.eclipse.jface.text.contentassist.IContentAssistProcessor;
 import org.eclipse.jface.text.contentassist.IContextInformation;
@@ -10,6 +9,10 @@ import org.eclipse.jface.text.contentassist.IContextInformationValidator;
 
 import com.tabnine.eclipse.application.TabNineApplication;
 import com.tabnine.eclipse.application.impl.TabNineApplicationBasicImpl;
+import com.tabnine.eclipse.data.AutocompleteArgs;
+import com.tabnine.eclipse.data.AutocompleteResponse;
+import com.tabnine.eclipse.util.TabNineDocumentUtils;
+import com.tabnine.eclipse.util.TabNineLangUtils;
 
 /**
  * The content assist processor for Generic Editor with TabNine 
@@ -22,13 +25,15 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 	
 	// ===== ===== ===== ===== [Constants] ===== ===== ===== ===== //
 	
-	/** A empty proposal array represent no completions : {ICompletionProposal[]} EMPTY_PROPOSALS */
-	public static final ICompletionProposal[] EMPTY_PROPOSALS = {};
+	/** The option for text range of computation : int COMPUTE_RANGE_OPTION */
+	public static final int OPTION_COMPUTE_RANGE = TabNineDocumentUtils.FROM_DOC;
+	
+	/** The option for max results count getting from TabNine : int MAX_NUM_RESULTS */
+	public static final int OPTION_MAX_NUM_RESULTS = 20;
 
 	// ===== ===== ===== ===== [Member Variables] ===== ===== ===== ===== //
 	
 	/** The application interface of TabNine : TabNineApplication tabNineApplication */
-	@SuppressWarnings("unused")
 	private TabNineApplication tabNineApplication = new TabNineApplicationBasicImpl();
 	
 	// ===== ===== ===== ===== [Methods of Implementation] ===== ===== ===== ===== //
@@ -43,69 +48,94 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 	 * @description description
 	 */
 	public ICompletionProposal[] computeCompletionProposals(ITextViewer viewer, int offset) {
-		// STEP Number Extract text information from editor
-//		TabNineRequest tabNineRequest = TabNineApplicationUtils.generateAutocompleteRequest(viewer, offset);
+		// STEP Number Validate incoming parameters
+		if (viewer == null) {
+			return TabNineLangUtils.toArray(TabNineDocumentUtils.EMPTY_PROPOSAL_LIST, ICompletionProposal.class);
+		}
 		
-		// STEP Number Send complement request to TabNine core and get response
-//		AutocompleteResponse response = tabNineApplication.autocomplete(tabNineRequest);
+		// STEP Number Get the request from incoming context object
+		IDocument document = viewer.getDocument();
+		AutocompleteArgs autocompleteArgs = TabNineDocumentUtils.extractAutocompleteArgs(offset, document, viewer, OPTION_COMPUTE_RANGE, null);
 		
-		// STEP Number Extract completion proposals from response
-//		ICompletionProposal[] proposals = TabNineApplicationUtils.wrapCompletionProposals(response);
-		
-		// STEP Number Validate the extraction
-//		if (proposals == null) {
-//			proposals = EMPTY_PROPOSALS;
-//			
-//		}
-		
-		// STEP Number Return proposals
-//		return proposals;
-		
-		try {
-			// STEP Number Get text information
-			IDocument doc = viewer.getDocument();
-			int lineIndex = doc.getLineOfOffset(offset);
-			int lineOffset = doc.getLineOffset(lineIndex);
-			int oldTextLength = offset - lineOffset;
-			String oldText = doc.get(lineOffset, oldTextLength);
-			System.out.println(oldText);
-			
-			// STEP Number Compute proposal
-			String newText = oldText + "Apple";
-			
-			// STEP Number Wrap proposal and then return
-			ICompletionProposal[] proposals = {new CompletionProposal(newText, lineOffset, oldTextLength, newText.length())};
-			return proposals;
-			
-		} catch (Exception e) {
-			// STEP Number When catch exceptions, return then empty array as instead
-			e.printStackTrace();
-			return EMPTY_PROPOSALS;
+		// STEP Number Check the result has got
+		if (autocompleteArgs == null) {
+			System.out.println("The autocomplete argument object is null."); // STUB Number Text
+			return null;
 			
 		}
 		
+		// STEP Number Complete other settings
+		autocompleteArgs.setFilename(TabNineDocumentUtils.getPathOfCurrentlyEditingFile());
+		autocompleteArgs.setMaxNumResults(OPTION_MAX_NUM_RESULTS);
+		
+		// STEP Number Send request
+		AutocompleteResponse response = tabNineApplication.autocomplete(autocompleteArgs);
+		
+		// STEP Number Generate proposals using the context and response, then return it
+		return TabNineLangUtils.toArray(
+				TabNineDocumentUtils.generateCompletionProposal(offset, document, viewer, response, OPTION_COMPUTE_RANGE)
+				, ICompletionProposal.class
+		);
+		
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#computeContextInformation(org.eclipse.jface.text.ITextViewer, int)
+	 * @param viewer
+	 * @param offset
+	 * @return
+	 * @writer ZhouYi
+	 * @date 2019-12-20 11:27:23
+	 * @description description
+	 */
 	public IContextInformation[] computeContextInformation(ITextViewer viewer, int offset) {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#getCompletionProposalAutoActivationCharacters()
+	 * @return
+	 * @writer ZhouYi
+	 * @date 2019-12-20 11:27:25
+	 * @description description
+	 */
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#getContextInformationAutoActivationCharacters()
+	 * @return
+	 * @writer ZhouYi
+	 * @date 2019-12-20 11:27:27
+	 * @description description
+	 */
 	public char[] getContextInformationAutoActivationCharacters() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#getContextInformationValidator()
+	 * @return
+	 * @writer ZhouYi
+	 * @date 2019-12-20 11:27:30
+	 * @description description
+	 */
 	public IContextInformationValidator getContextInformationValidator() {
 		// TODO Auto-generated method stub
 		return null;
 	}
 
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.text.contentassist.IContentAssistProcessor#getErrorMessage()
+	 * @return
+	 * @writer ZhouYi
+	 * @date 2019-12-20 11:27:37
+	 * @description description
+	 */
 	public String getErrorMessage() {
 		// TODO Auto-generated method stub
 		return null;

@@ -3,10 +3,32 @@
 <plugin>
 
 	<!-- Extension point : The processors to compute content assist for Text Editor -->
-	<extension point="org.eclipse.ui.genericeditor.contentAssistProcessors">
-		<contentAssistProcessor class="com.tabnine.eclipse.TabNineCompletionProcessor"></contentAssistProcessor>
+	<extension point="org.eclipse.ui.genericeditor.contentAssistProcessors"
+		id="TabNineGenericTextCompletionProposalComputer"
+		name="TabNine Generic Text Proposal Computer"
+	>
+		<contentAssistProcessor class="com.tabnine.eclipse.TabNineContentAssistProcessor"
+			contentType="TabNine Generic Text Types"
+		></contentAssistProcessor>
 	</extension>
 	
+	<extension point="org.eclipse.core.contenttype.contentTypes"> 
+		<content-type id="TabNineGenericTextTypes"
+			name="TabNine Generic Text Types"
+			base-type="org.eclipse.core.runtime.text"
+			file-extensions="html,jsp,yaml,py,c,txt,js"
+		/>
+	</extension> 
+	
+	<!-- 
+	<extension point="org.eclipse.ui.editors">
+		<editorContentTypeBinding
+			contentTypeId="TabNineGenericTextTypes"
+			editorId="org.eclipse.ui.genericeditor.GenericEditor">
+		</editorContentTypeBinding>
+	</extension>
+	 -->
+	 
 	<!-- Extension point : The proposal category related to TabNine for Java Editor -->
 	<extension point="org.eclipse.jdt.ui.javaCompletionProposalComputer"
 		id="TabNineJavaCompletionProposal"
@@ -34,6 +56,27 @@
 	          If no partition types are specified, the computer is added to all partition types.
 	          See documentation in "Extension Point References" http://help.eclipse.org/index.jsp?topic=/org.eclipse.jdt.doc.isv/reference/extension-points/org_eclipse_jdt_ui_javaCompletionProposalComputer.html
 	    	-->
+		</javaCompletionProposalComputer>
+	</extension>
+	
+	<!-- Extension point : The proposal category related to TabNine for JavaScript Editor -->
+	<extension point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
+		id="TabNineJavaScriptCompletionProposal"
+		name="TabNine JavaScript Proposals"
+	>
+		<proposalCategory icon="icon/tabnine-logo-16x16.png"></proposalCategory>
+	</extension>
+	
+	<!-- Extension point : The computer to compute completion proposals for JavaScript Editor -->
+	<extension point="org.eclipse.wst.jsdt.ui.javaCompletionProposalComputer"
+		id="TabNineJavaScriptCompletionProposalComputer"
+		name="TabNine JavaScript Proposal Computer"
+	>
+		<javaCompletionProposalComputer class="com.tabnine.eclipse.TabNineJavaScriptCompletionProposalComputer"
+			activate="true"
+			categoryId="com.tabnine.eclipse.TabNineJavaScriptCompletionProposal"
+			needsSortingAfterFiltering="true"
+		>
 		</javaCompletionProposalComputer>
 	</extension>
 

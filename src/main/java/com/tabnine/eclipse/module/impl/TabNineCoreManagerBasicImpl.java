@@ -8,16 +8,9 @@ import java.io.InputStreamReader;
 import java.io.LineNumberReader;
 import java.io.UnsupportedEncodingException;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
-
-import org.eclipse.core.runtime.FileLocator;
-import org.eclipse.core.runtime.Path;
-import org.eclipse.core.runtime.Platform;
-import org.eclipse.core.runtime.URIUtil;
-import org.osgi.framework.Bundle;
 
 import com.tabnine.eclipse.constant.TabNineConstants;
 import com.tabnine.eclipse.data.TabNineCore;
@@ -251,9 +244,7 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 			
 			// SUBSTEP Number Try to get path related to the plug-in bundle
 			try {
-				Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
-				URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
-				File projectRootFolder = URIUtil.toFile(URIUtil.toURI(url));
+				File projectRootFolder = TabNineIOUtils.getPluginRootFolder();
 				File tabNineCoreRootFolder = null;
 				for (int i = 0, length = TABNINE_CORE_FILE_FOLDER_NAMES.size(); i < length; i++) {
 					tabNineCoreRootFolder = new File(projectRootFolder, TABNINE_CORE_FILE_FOLDER_NAMES.get(i));
@@ -263,16 +254,19 @@ public class TabNineCoreManagerBasicImpl implements TabNineCoreManager {
 					}
 					
 				}
+				if (tabNineCoreRootFolder == null) {
+					throw new IOException(logTitle + " - Failed: No core file folder exists");
+				}
 				path = tabNineCoreRootFolder.getAbsolutePath();
 				
 			} catch (IOException e) {
-				logMessage = logTitle + " - Failed: Unknown io exception hanppend.";
+				logMessage = logTitle + " - Failed: Unknown IOException hanppend.";
 				System.err.println(logMessage);
 				e.printStackTrace();
 				throw new TabNineApplicationException(logMessage, e);
 				
 			} catch (URISyntaxException e) {
-				logMessage = logTitle + " - Failed: Unknown uri sytax exception hanppend.";
+				logMessage = logTitle + " - Failed: Unknown UriSytaxException hanppend.";
 				System.err.println(logMessage);
 				e.printStackTrace();
 				throw new TabNineApplicationException(logMessage, e);
