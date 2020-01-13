@@ -8,7 +8,7 @@ import java.util.Iterator;
  * The LangUtils used in this project (The "TabNine" prefix is just for distinguishing)
  * @author ZhouYi
  * @version version
- * @date 2019年10月29日 15:27:42
+ * @date 2019-10-29 15:27:42
  * @description description
  */
 public class TabNineLangUtils {
@@ -46,7 +46,7 @@ public class TabNineLangUtils {
 	 * @return equals Are the two targets equal to each other, if both of them are null, return true
 	 * @author ZhouYi
 	 * @since version
-	 * @date 2019年10月29日 15:30:02
+	 * @date 2019-10-29 15:30:02
 	 * @description description
 	 */
 	public static <T> boolean equalsWithNull(T a, T b) {

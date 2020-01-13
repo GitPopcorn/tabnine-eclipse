@@ -12,6 +12,7 @@ import com.tabnine.eclipse.exception.TabNineApplicationException;
 import com.tabnine.eclipse.module.TabNineCoreManager;
 import com.tabnine.eclipse.module.TabNineCoreRunner;
 import com.tabnine.eclipse.util.TabNineIOUtils;
+import com.tabnine.eclipse.util.TabNineLoggingUtils;
 import com.tabnine.eclipse.util.TabNineTextUtils;
 
 /**
@@ -59,62 +60,8 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		String message = null;
 		runner.start();
 		
-		message = "{\"version\": \"2.1.17\", \"request\": {\"Autocomplete\": {\"before\": \"Hello H\", \"after\": \"\", \"region_includes_beginning\": true, \"region_includes_end\": true, \"filename\": null}}}";
-		System.out.println();
-		System.out.println(message);
-		System.out.println(runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		message = "{\"version\": \"2.1.17\", \"request\": {\"Autocomplete\": {\"before\": \"\\\\tempty\", \"after\": \"\", \"region_includes_beginning\": false, \"region_includes_end\": false, \"filename\": \"E:\\\\vscode-workspace-temp\\\\temp-files\\\\javascript\\\\web-module\\\\ModifyZhihuEquationSvg2Png.js\", \"max_num_results\": 10}}}";
-		System.out.println();
-		System.out.println(message);
-		System.out.println(runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		message = "{\"version\": \"2.1.17\", \"request\": {\"Autocomplete\": {\"before\": \"query\", \"after\": \"\", \"region_includes_beginning\": false, \"region_includes_end\": false, \"filename\": \"E:\\\\vscode-workspace-temp\\\\temp-files\\\\javascript\\\\web-module\\\\BatchParseShortLinks.js\", \"max_num_results\": 10}}}";
-		System.out.println();
-		System.out.println(message);
-		System.out.println(runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1));
-
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		message = "{\"version\": \"2.1.17\", \"request\": {\"Autocomplete\": {\"before\": \"query\", \"after\": \"\", \"region_includes_beginning\": false, \"region_includes_end\": false, \"filename\": \"E:\\\\vscode-workspace-temp\\\\temp-files\\\\javascript\\\\web-module\\\\BatchParseShortLinks.js\", \"max_num_results\": 10}}}";
-		System.out.println();
-		System.out.println(message);
-		System.out.println(runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		message = "{\"version\": \"2.1.17\", \"request\": {\"Autocomplete\": {\"before\": \"query\", \"after\": \"\", \"region_includes_beginning\": false, \"region_includes_end\": false, \"filename\": \"E:\\\\vscode-workspace-temp\\\\temp-files\\\\javascript\\\\web-module\\\\BatchParseShortLinks.js\", \"max_num_results\": 10}}}";
-		System.out.println();
-		System.out.println(message);
-		System.out.println(runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1));
+		message = "{\"version\": \"2.2.1\", \"request\": {\"Autocomplete\": {\"before\": \"Hello H\", \"after\": \"\", \"region_includes_beginning\": true, \"region_includes_end\": true, \"filename\": null}}}";
+		runner.send(message + TabNineTextUtils.LINE_SEPARATOR, 1);
 		
 	}
 	
@@ -142,7 +89,7 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		
 		// STEP Number Check the running status
 		if (isRunning) {
-			System.out.println(logTitle + " - Returned: The process is already started");
+			TabNineLoggingUtils.warning(logTitle + " - Returned: The process is already started");
 			return;
 			
 		}
@@ -151,7 +98,7 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		TabNineCore core = this.tabNineCoreManager.loadTabNineCore();
 		if (core.isRunning() && (process != null)) {
 			logMessage = logTitle + " - Failed: The TabNine core is occupied";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
 			
 		}
@@ -171,11 +118,11 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 			isRunning = true;
 			
 			// SUBSTEP Number Print log
-			System.out.println(logTitle + " - Succeeded");
+			TabNineLoggingUtils.ok(logTitle + " - Succeeded");
 			
 		} catch (IOException e) {
 			logMessage = logTitle + " - Failed: Unknown IOException happened while start TabNine process";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		}
@@ -205,6 +152,10 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		
 		// STEP Number Send message to process
 		try {
+			// SUBSTEP Number Print logs
+			TabNineLoggingUtils.debug(logTitle + " - Succeeded: Send message as follows: ");
+			TabNineLoggingUtils.debug(message);
+			
 			// SUBSTEP Number Write message to the process writer
 			processWriter.write(message);
 			processWriter.flush();
@@ -237,15 +188,16 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 				
 			}
 			
-			// TEST Number Text
-			System.out.println(resultBuilder);
+			// SUBSTEP Number Print logs
+			TabNineLoggingUtils.debug(logTitle + " - Succeeded: Get response as follows: ");
+			TabNineLoggingUtils.debug(resultBuilder.toString());
 			
 			// SUBSTEP Number Return the result read
 			return resultBuilder.toString();
 			
 		} catch (IOException e) {
 			logMessage = logTitle + " - Failed: Unknown IOException happened while send message to TabNine process";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		}
@@ -266,7 +218,7 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		
 		// STEP Number Check the running status
 		if (!isRunning) {
-			System.out.println(logTitle + " - Returned: The process is not running now");
+			TabNineLoggingUtils.warning(logTitle + " - Returned: The process is not running now");
 			return;
 			
 		}
@@ -289,8 +241,8 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 		currentCore = null;
 		isRunning = false;
 		
-		// STEP Number Print log
-		System.out.println(logTitle + " - Succeeded");
+		// STEP Number Print logs
+		TabNineLoggingUtils.ok(logTitle + " - Succeeded");
 		
 	}
 	
@@ -369,7 +321,7 @@ public class TabNineCoreRunnerBasicImpl implements TabNineCoreRunner {
 				
 			default:
 				logMessage = logTitle + " - Failed : Unknown OS type [" + platformInfo.getOsType() + "]";
-				System.err.println(logMessage);
+				TabNineLoggingUtils.error(logMessage);
 				throw new TabNineApplicationException(logMessage);
 				
 		}

@@ -35,78 +35,8 @@ public class TabNineApplicationBasicImpl implements TabNineApplication {
 	
 	public static void main(String[] args) {
 		TabNineApplication application = new TabNineApplicationBasicImpl();
-		AutocompleteArgs request = null;
-		String filename = "E:\\vscode-workspace-temp\\temp-files\\javascript\\web-module\\ModifyZhihuEquationSvg2Png.js";
-		
-		request = new AutocompleteArgs("Hello H", "", null, true, true, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		request = new AutocompleteArgs("\\tempty", "", filename, false, false, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		request = new AutocompleteArgs("\\tempty", "", filename, false, false, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		request = new AutocompleteArgs("query", "", filename, false, false, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
-
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		request = new AutocompleteArgs("query", "", filename, false, false, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
-		
-		try {
-			Thread.sleep(1000 * 10);
-			
-		} catch (InterruptedException e) {
-			e.printStackTrace();
-			
-		}
-		
-		request = new AutocompleteArgs("query", "", filename, false, false, null);
-		System.out.println();
-		System.out.println(request);
-		System.out.println(application.autocomplete(request));
+		AutocompleteArgs request = new AutocompleteArgs("Hello H", "", null, true, true, null);
+		application.autocomplete(request);
 		
 	}
 	
@@ -224,13 +154,8 @@ public class TabNineApplicationBasicImpl implements TabNineApplication {
 			
 		}
 		
-		// TEST Number Text
-		String json = this.gson.toJson(command);
-		System.out.println(json);
-		return json;
-		
 		// STEP Number Render JSON text and return
-//		return this.gson.toJson(command);
+		return this.gson.toJson(command);
 		
 	}
 	

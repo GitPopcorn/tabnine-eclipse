@@ -22,6 +22,9 @@ import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.IURIEditorInput;
+import org.eclipse.ui.IWorkbench;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PlatformUI;
 
 import com.tabnine.eclipse.data.AutocompleteArgs;
@@ -72,10 +75,6 @@ public class TabNineDocumentUtils {
 	
 	// ===== ===== ===== ===== [Entry Method (For test only)] ===== ===== ===== ===== //
 	
-	public static void main(String[] args) {
-		Image i = loadTabNineLogoImage();
-		System.out.println(i.hashCode());
-	}
 	
 	// ===== ===== ===== ===== [Test Methods] ===== ===== ===== ===== //
 	
@@ -215,9 +214,8 @@ public class TabNineDocumentUtils {
 			}
 			
 		} catch (BadLocationException e) {
-			logMessage = logTitle + " - Failed: Unknown bad location exception hanppend.";
-			System.err.println(logMessage);
-			e.printStackTrace();
+			logMessage = logTitle + " - Failed: Unknown BadLocationException hanppend.";
+			TabNineLoggingUtils.error(logMessage, e);
 			return null;
 			
 		}
@@ -237,13 +235,15 @@ public class TabNineDocumentUtils {
 	 *     <li>{@link #FROM_LINE}: Get the before/after text from current line</li>
 	 *     <li>{@link #FROM_DOC}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
+	 * @param isHTMLStyleSupported Did these proposals support the HTML style decoration like {@code "<del>Deprecated</del>"}
 	 * @return proposalList The proposal list generated
 	 * @author ZhouYi
 	 * @date 2019-12-01 18:08:45
 	 * @description description
 	 * @note note
 	 */
-	public static List<ICompletionProposal> generateCompletionProposal(org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext context, AutocompleteResponse response, int extractionRange) {
+	public static List<ICompletionProposal> generateCompletionProposal(org.eclipse.wst.jsdt.ui.text.java.ContentAssistInvocationContext context, AutocompleteResponse response
+			, int extractionRange, boolean isHTMLStyleSupported) {
 		// STEP Number Validate incoming parameters
 		if (context == null) {
 			return EMPTY_PROPOSAL_LIST;
@@ -257,6 +257,7 @@ public class TabNineDocumentUtils {
 				, context.getViewer()
 				, response
 				, extractionRange
+				, isHTMLStyleSupported
 		);
 		
 	}
@@ -269,13 +270,15 @@ public class TabNineDocumentUtils {
 	 *     <li>{@link #FROM_LINE}: Get the before/after text from current line</li>
 	 *     <li>{@link #FROM_DOC}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
+	 * @param isHTMLStyleSupported Did these proposals support the HTML style decoration like {@code "<del>Deprecated</del>"}
 	 * @return proposalList The proposal list generated
 	 * @author ZhouYi
 	 * @date 2019-12-01 18:08:45
 	 * @description description
 	 * @note note
 	 */
-	public static List<ICompletionProposal> generateCompletionProposal(ContentAssistInvocationContext context, AutocompleteResponse response, int extractionRange) {
+	public static List<ICompletionProposal> generateCompletionProposal(ContentAssistInvocationContext context, AutocompleteResponse response
+			, int extractionRange, boolean isHTMLStyleSupported) {
 		// STEP Number Validate incoming parameters
 		if (context == null) {
 			return EMPTY_PROPOSAL_LIST;
@@ -289,7 +292,8 @@ public class TabNineDocumentUtils {
 				, context.getViewer()
 				, response
 				, extractionRange
-				);
+				, isHTMLStyleSupported
+		);
 		
 	}
 	
@@ -303,6 +307,7 @@ public class TabNineDocumentUtils {
 	 *     <li>{@link #FROM_LINE}: Get the before/after text from current line</li>
 	 *     <li>{@link #FROM_DOC}: Get the before/after text from the whole documents(not recommend)</li>
 	 *     <li>{@link #FROM_RANGE_COMPUTER}: Get the before/after text by a custom range computer(need to provide a computer object)</li>
+	 * @param isHTMLStyleSupported Did these proposals support the HTML style decoration like {@code "<del>Deprecated</del>"}
 	 * @return proposalList The proposal list generated
 	 * @author ZhouYi
 	 * @date 2019-12-01 18:08:45
@@ -310,7 +315,7 @@ public class TabNineDocumentUtils {
 	 * @note note
 	 */
 	public static List<ICompletionProposal> generateCompletionProposal(int invocationOffset, IDocument document, ITextViewer viewer
-			, AutocompleteResponse response, int extractionRange) {
+			, AutocompleteResponse response, int extractionRange, boolean isHTMLStyleSupported) {
 		// STEP Number Validate incoming parameters
 		if ((invocationOffset < 0) || (response == null) || TabNineLangUtils.isEmpty(response.getResults())) {
 			return EMPTY_PROPOSAL_LIST;
@@ -326,51 +331,76 @@ public class TabNineDocumentUtils {
 		int oldPrefixLength = TabNineTextUtils.safelyGetLength(oldPrefix);
 		boolean isUserMessageNotBlank = TabNineTextUtils.isNotBlank(userMessage);
 		
+		// STEP Number Declare the line break characters
+		String lineBreak = isHTMLStyleSupported ? TabNineTextUtils.HTML_BREAK_ELEMENT : TabNineTextUtils.LINE_SEPARATOR;
+		
 		// STEP Number Handle the auto-complete result entities circularly
 		List<ICompletionProposal> proposalList = new ArrayList<ICompletionProposal>(results.size());
 		for (ResultEntry resultEntry : results) {
 			// SUBSTEP Number Read properties
 			String newPrefix = resultEntry.getNewPrefix();
 			String newSuffix = resultEntry.getNewSuffix();
+			String oldSuffix = resultEntry.getOldSuffix();
 			Boolean deprecated = resultEntry.getDeprecated();
 			String detail = resultEntry.getDetail();
 			String kind = resultEntry.getKind();
 			String documentation = resultEntry.getDocumentation();
 			
-			// SUBSTEP Number Make up text
-			// TODO Number The text we build here contains line separator, 
-			//   but no line breaks shows in additional proposal information, 
-			//   this problem should be fixed later
+			// SUBSTEP Number Compute new text to replace the old one
 			String newText = newPrefix.concat(newSuffix);
-			StringBuilder infoBuilder = new StringBuilder("<font size=\"3\"><b>From TabNine</b></font>");
+			
+			// SUBSTEP Number Make up text
+			StringBuilder infoBuilder = 
+				isHTMLStyleSupported 
+				? new StringBuilder("<font size=\"3\"><b>From TabNine</b></font>")
+				: new StringBuilder("From TabNine");
 			if (TabNineLangUtils.equalsWithNull(deprecated, true)) {
-				infoBuilder.append(TabNineTextUtils.HTML_BREAK_ELEMENT).append("<del>Deprecated.</del>");
+				infoBuilder.append(lineBreak);
+				infoBuilder.append(
+					isHTMLStyleSupported
+					? "<del>Deprecated.</del>"
+					: "Deprecated."
+				);
 				
 			}
 			if (TabNineTextUtils.isNotBlank(detail)) {
-				infoBuilder.append(TabNineTextUtils.HTML_BREAK_ELEMENT).append(detail);
+				infoBuilder.append(lineBreak).append(detail);
 				
 			}
 			if (isUserMessageNotBlank) {
-				infoBuilder.append(TabNineTextUtils.HTML_BREAK_ELEMENT).append("</font color=\"#D3D3D3\">").append(userMessage).append("</font>");
+				infoBuilder.append(lineBreak);
+				infoBuilder.append(
+					isHTMLStyleSupported
+					? "</font color=\"#D3D3D3\">".concat(userMessage).concat("</font>")
+					: userMessage
+				);
 				
 			}
 			if (TabNineTextUtils.isNotBlank(kind)) {
-				infoBuilder.append(TabNineTextUtils.HTML_BREAK_ELEMENT).append(kind);
+				infoBuilder.append(lineBreak).append(kind);
 				
 			}
 			if (TabNineTextUtils.isNotBlank(documentation)) {
-				infoBuilder.append(TabNineTextUtils.HTML_BREAK_ELEMENT).append(documentation);
+				infoBuilder.append(lineBreak).append(documentation);
 				
 			}
 			String additionalProposalInfo = infoBuilder.toString();
 			
 			// SUBSTEP Number Generate proposal object and add it to list
+			// NOTE Number The argument of {@link org.eclipse.jface.text.contentassist.CompletionProposal} contains:
+			//   String replacementString:                The new string we use to replace the old one.
+			//   int replacementOffset:                   The start point we begin to replace.
+			//   int replacementLength:                   The total length of old string which is needed to be replaced.
+			//   int cursorPosition:                      The cursor position relative to replacement offset point after the replacement.
+			//   Image image:                             The icon images displayed with proposal.
+			//   String displayString:                    The entry text displayed for proposal.
+			//   IContextInformation contextInformation:  The context information with this proposal.
+			//   String additionalProposalInfo:           The additional proposal info text shown in detail dialog.
 			proposalList.add(new CompletionProposal(
 					newText
 					, invocationOffset - oldPrefixLength
-					, oldPrefixLength
-					, TabNineTextUtils.safelyGetLength(newPrefix)
+					, oldPrefixLength + TabNineTextUtils.safelyGetLength(oldSuffix)
+					, TabNineTextUtils.safelyGetLength(newText)
 					, loadTabNineLogoImage()
 					, newText
 					, null
@@ -387,6 +417,53 @@ public class TabNineDocumentUtils {
 	// ===== ===== ===== ===== [Static Utility Methods - Others] ===== ===== ===== ===== //
 	
 	/**
+	 * Try to get the currently active editor part of eclipse, if failed, return null
+	 * @return editor The editor we got
+	 * @author ZhouYi
+	 * @date 2020-01-06 13:55:07
+	 * @description description
+	 * @note note
+	 */
+	public static IEditorPart getAcitveEditor() {
+		// STEP Number Try to get workbench
+		IWorkbench workbench = PlatformUI.getWorkbench();
+		if (workbench == null) {
+			TabNineLoggingUtils.debug("Fail to get currently active editor of eclipse: the workbench has not been started");
+			return null;
+			
+		}
+		
+		// STEP Number Try to get the active window
+		IWorkbenchWindow activeWorkbenchWindow = workbench.getActiveWorkbenchWindow();
+		if (activeWorkbenchWindow == null) {
+			TabNineLoggingUtils.debug("Fail to get currently active editor of eclipse: there is no active window in current workbench");
+			return null;
+			
+		}
+		
+		// STEP Number Try to get the active page
+		IWorkbenchPage activePage = activeWorkbenchWindow.getActivePage();
+		if (activePage == null) {
+			TabNineLoggingUtils.debug("Fail to get currently active editor of eclipse: there is no active page in current window");
+			return null;
+			
+		}
+		
+		// STEP Number Try to get the active editor
+		IEditorPart activeEditor = activePage.getActiveEditor();
+		if (activeEditor == null) {
+			TabNineLoggingUtils.debug("Fail to get currently active editor of eclipse: there is no active editor in current page");
+			return null;
+			
+		}
+		
+		// STEP Number Return the result we got
+		TabNineLoggingUtils.debug("Successfully get currently active editor of eclipse");
+		return activeEditor;
+		
+	}
+	
+	/**
 	 * Get the path of file which is currently edited
 	 * @return path The path text got
 	 * @author ZhouYi
@@ -396,7 +473,7 @@ public class TabNineDocumentUtils {
 	 */
 	public static String getPathOfCurrentlyEditingFile() {
 		// STEP Number Get active editor and check
-		IEditorPart activeEditor = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getActiveEditor();
+		IEditorPart activeEditor = getAcitveEditor();
 		if (activeEditor == null) {
 			return null;
 			
@@ -404,6 +481,10 @@ public class TabNineDocumentUtils {
 		
 		// STEP Number Try to get the editor input
 		IEditorInput editorInput = activeEditor.getEditorInput();
+		if (editorInput == null) {
+			return null;
+			
+		}
 		
 		// STEP Number Declare result variable
 		String filePath = null;
@@ -466,19 +547,17 @@ public class TabNineDocumentUtils {
 					
 				}
 				if (imageFile == null) {
-					throw new IOException("Failed to load TabNine logo image: No image files exists");
+					throw new IOException("Fail to load TabNine logo image: No image files exists");
 				}
 				
 				// SUBSTEP Number Create image
 				tabNineLogoImage = new Image(null, new FileInputStream(imageFile));
 					
 			} catch (IOException e) {
-				System.err.println("Failed to load TabNine logo image: Unknown IOException happended");
-				e.printStackTrace();
+				TabNineLoggingUtils.error("Fail to load TabNine logo image: Unknown IOException happended", e);
 				
 			} catch (URISyntaxException e) {
-				System.err.println("Failed to load TabNine logo image: Unknown URISyntaxException happended");
-				e.printStackTrace();
+				TabNineLoggingUtils.error("Fail to load TabNine logo image: Unknown URISyntaxException happended", e);
 				
 			}
 			

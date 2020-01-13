@@ -53,58 +53,9 @@ public class TabNineIOUtils {
 	
 	// ===== ===== ===== ===== [Entry Method (For test only)] ===== ===== ===== ===== //
 	
-	public static void main(String[] args) {
-		testEfficiencyOfUrlConnection();
-		
-	}
 	
 	// ===== ===== ===== ===== [Test Methods] ===== ===== ===== ===== //
 	
-	public static void testEfficiencyOfUrlConnection() {
-		// STEP Number Declare test variables
-		int loopCount = 10;
-		long start = 0L;
-		long end = 0L;
-		String urlPath = "https://update.tabnine.com/version";
-		
-		// STEP Number Test {@link #doGet(String, String)}
-		for (int i = 0; i < loopCount; i++) {
-			start = System.currentTimeMillis();
-			
-			System.out.println(doGet(urlPath, null));
-			
-			end = System.currentTimeMillis();
-			System.out.println(end - start);
-			
-		}
-		
-		// STEP Number Pring separated empty line
-		System.out.println();
-		System.out.println();
-		
-		// STEP Number Test Original {@link URLConnection}
-		try {
-			for (int i = 0; i < loopCount; i++) {
-				start = System.currentTimeMillis();
-				
-				URLConnection connection = new URL(urlPath).openConnection();
-				BufferedReader reader = new BufferedReader(new InputStreamReader(connection.getInputStream()));
-				String line = null;
-				while ((line = reader.readLine()) != null) {
-					System.out.println(line);
-					
-				}
-				
-				end = System.currentTimeMillis();
-				System.out.println(end - start);
-			}
-			
-		} catch (Exception e) {
-			e.printStackTrace();
-			
-		}
-		
-	}
 	
 	// ===== ===== ===== ===== [Static Utility Methods - Plugin Bundle Application] ===== ===== ===== ===== //
 	
@@ -119,17 +70,39 @@ public class TabNineIOUtils {
 	 * @note note
 	 */
 	public static File getPluginRootFolder() throws IOException, URISyntaxException {
-		// STEP Number Try to get current plug-in bundle
-		Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
-		
-		// STEP Number Use {@link FileLocator} to get root URL in bundle
-		URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
-		
-		// STEP Number Use {@link URIUtil} to transform the URL as file
-		File pluginRootFolder = URIUtil.toFile(URIUtil.toURI(url));
-		
-		// STEP Number Return the folder we got
-		return pluginRootFolder;
+		try {
+			// STEP Number Try to get current plug-in bundle
+			Bundle bundle = Platform.getBundle(TabNineConstants.BUNDLE_SYMBOLIC_NAME);
+			
+			// STEP Number Use {@link FileLocator} to get root URL in bundle
+			URL url = FileLocator.toFileURL(FileLocator.find(bundle, new Path("")));
+			
+			// STEP Number Print logs
+			TabNineLoggingUtils.info("The root resource URL of current plug-in bundle is: " + url.toString());
+			
+			// STEP Number Use {@link URIUtil} to transform the URL as file
+			File pluginRootFolder = URIUtil.toFile(URIUtil.toURI(url));
+			
+			// STEP Number Print logs
+			TabNineLoggingUtils.info("The root folder of current plug-in bundle is: " + pluginRootFolder.getAbsolutePath());
+			
+			// STEP Number Return the folder we got
+			return pluginRootFolder;
+			
+		} catch (Exception e) {
+			// STEP Number While catch exception, print logs
+			TabNineLoggingUtils.error("Failed to get root folder of current plug-in, try to return root classpath folder of current VM");
+			
+			// STEP Number Try to get the root classpath folder of current VM
+			File projectRootFolder = URIUtil.toFile(URIUtil.toURI(ClassLoader.getSystemResource("")));
+			
+			// STEP Number Print logs
+			TabNineLoggingUtils.info("The root classpath folder of current VM is: " + projectRootFolder.getAbsolutePath());
+			
+			// STEP Number Text
+			return projectRootFolder;
+			
+		}
 		
 	}
 	
@@ -149,7 +122,7 @@ public class TabNineIOUtils {
 				resource.close();
 				
 			} catch (IOException e) {
-				System.err.println("Fail to close IO resource");
+				TabNineLoggingUtils.error("Fail to close IO resource", e);
 				
 			}
 			
@@ -236,7 +209,7 @@ public class TabNineIOUtils {
     	// STEP Number Validate incoming parameters
     	if (TabNineLangUtils.isBlank(urlPath)) {
 			logMessage = logTitle + " - Failed: The URL path is blank";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
     		
 		}
@@ -246,7 +219,7 @@ public class TabNineIOUtils {
 		}
 		
     	// STEP Number Print logs
-    	System.out.println(logTitle + " [" + urlPath + "]");
+    	TabNineLoggingUtils.info(logTitle + " [" + urlPath + "]");
     	
     	// STEP Number Declare relative variables
     	StringBuffer resultBuffer = new StringBuffer(); // The returned result
@@ -270,7 +243,7 @@ public class TabNineIOUtils {
 			    throw new IOException("HTTP Request is not success, Response code is " + responseCode);
 			    
 			} else {
-				System.out.println(logTitle + " - Response code was [" + responseCode + "]");
+				TabNineLoggingUtils.info(logTitle + " - Response code was [" + responseCode + "]");
 				
 			}
 			
@@ -288,19 +261,22 @@ public class TabNineIOUtils {
 			
 		} catch (MalformedURLException e) {
 			logMessage = logTitle + " - Failed: The URL path [" + urlPath + "] is malformed.";
+			TabNineLoggingUtils.error(logMessage, e);
+			throw new TabNineApplicationException(logMessage, e);
 			
 		} catch (UnsupportedEncodingException e) {
 			logMessage = logTitle + " - Failed: The encoding/charset type [" + charsetName + "] is not supported.";
+			TabNineLoggingUtils.error(logMessage, e);
+			throw new TabNineApplicationException(logMessage, e);
 			
 		} catch (IOException e) {
-			logMessage = logTitle + " - Failed: Unknown IO exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown IOException hanppend.";
+			TabNineLoggingUtils.error(logMessage, e);
+			throw new TabNineApplicationException(logMessage, e);
 			
 		} catch (Exception e) {
-			if (logMessage == null) {
-				logMessage = logTitle + " - Failed: Unknown exception hanppend.";
-			}
-			System.err.println(logMessage);
-			e.printStackTrace();
+			logMessage = logTitle + " - Failed: Unknown Exception hanppend.";
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		} finally {
@@ -332,13 +308,13 @@ public class TabNineIOUtils {
     	// STEP Number Validate incoming parameters
     	if (TabNineLangUtils.isBlank(urlPath)) {
 			logMessage = logTitle + " - Failed: The URL path is blank.";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
     		
 		}
     	if (TabNineLangUtils.isBlank(filePath)) {
 			logMessage = logTitle + " - Failed: The file path is blank.";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
     		
 		}
@@ -347,7 +323,7 @@ public class TabNineIOUtils {
     	File destFile = new File(filePath);
     	File parentFolder = destFile.getParentFile();
     	if (destFile.exists()) {
-			System.out.println(logTitle + " - Aborted: The file [" + filePath + "] is already existed.");
+    		TabNineLoggingUtils.info(logTitle + " - Aborted: The file [" + filePath + "] is already existed.");
 			return destFile;
     		
 		}
@@ -356,13 +332,13 @@ public class TabNineIOUtils {
     	parentFolder.mkdirs();
     	if (!parentFolder.isDirectory()) {
 			logMessage = logTitle + " - Failed: The parent folder of [" + filePath + "] is not a direcotry and can not be created.";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
     		
 		}
     	
     	// STEP Number Print logs
-    	System.out.println(logTitle + " [" + urlPath + "] to target file [" + filePath + "].");
+    	TabNineLoggingUtils.info(logTitle + " [" + urlPath + "] to target file [" + filePath + "].");
     	
 		// STEP Number Declare IO source
 		InputStream inputStream = null;
@@ -384,7 +360,7 @@ public class TabNineIOUtils {
 			    throw new IOException("HTTP Request is not success, Response code is " + responseCode);
 			    
 			} else {
-				System.out.println(logTitle + " - Response code was [" + responseCode + "]");
+				TabNineLoggingUtils.info(logTitle + " - Response code was [" + responseCode + "]");
 				
 			}
 			
@@ -421,16 +397,17 @@ public class TabNineIOUtils {
 			
 		} catch (FileNotFoundException e) {
 			logMessage = logTitle + " - Failed: The target file [" + filePath + "] can not be found.";
+			TabNineLoggingUtils.error(logMessage, e);
+			throw new TabNineApplicationException(logMessage, e);
 			
 		} catch (IOException e) {
-			logMessage = logTitle + " - Failed: Unknown IO exception hanppend.";
+			logMessage = logTitle + " - Failed: Unknown IOException hanppend.";
+			TabNineLoggingUtils.error(logMessage, e);
+			throw new TabNineApplicationException(logMessage, e);
 			
 		} catch (Exception e) {
-			if (logMessage == null) {
-				logMessage = logTitle + " - Failed: Unknown exception hanppend.";
-			}
-			System.err.println(logMessage);
-			e.printStackTrace();
+			logMessage = logTitle + " - Failed: Unknown Exception hanppend.";
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		} finally {

@@ -1,11 +1,11 @@
-﻿# TabNine-Eclipse项目包全局公共忽略清单
+﻿# The ignore file list of tabnine-eclipse
 
-# 忽略编译后的二进制文件和打包文件
+# Ignore the compile file and binary file
 /bin/
 /target/
 
-# 忽略Eclipse设置文件
+# Ignore the settings/configuration file of eclipse
 /.settings/
 
-# 忽略TabNine的核心文件
+# Ignore the tabnine core file using to test
 /src/main/resources/tabnine-core/

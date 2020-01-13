@@ -6,6 +6,7 @@ import com.tabnine.eclipse.exception.TabNineApplicationException;
 import com.tabnine.eclipse.module.TabNineCoreDownloader;
 import com.tabnine.eclipse.util.TabNineIOUtils;
 import com.tabnine.eclipse.util.TabNineLangUtils;
+import com.tabnine.eclipse.util.TabNineLoggingUtils;
 
 /**
  * The basic implementation of {@link TabNineCoreDownloader}
@@ -22,26 +23,15 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 	// ===== ===== ===== ===== [Entry Method (For test only)] ===== ===== ===== ===== //
 	
 	public static void main(String[] args) {
-//		System.out.println(System.getProperty("os.name"));
-//		System.out.println(System.getProperty("os.arch"));
-//		System.out.println(System.getProperty("os.version"));
-		
 		TabNineCoreDownloader downloader = new TabNineCoreDownloaderBasicImpl();
-		
-//		System.out.println(downloader.getLatestTabNineVersion());
-//		System.out.println(downloader.getDownloadUrlPath(downloader.getLatestTabNineVersion()));
-		
-//		System.out.println(ClassLoader.getSystemResource(""));
-//		System.out.println(ClassLoader.getSystemResource("").getPath());
-//		System.out.println(new File(ClassLoader.getSystemResource("").getPath()).getParentFile());
-//		System.out.println(new File(ClassLoader.getSystemResource("").getPath()).getParent() + File.separator + "tabnine-core" + File.separator);
 		
 		String downloadUrlPath = downloader.getDownloadUrlPath(downloader.getLatestTabNineVersion());
 		String fileFolderPath = new File(ClassLoader.getSystemResource("").getPath()).getParent() + File.separator + "tabnine-core";
-		System.out.println(downloader.downloadTabNineCode(
+		File coreFile = downloader.downloadTabNineCode(
 				downloadUrlPath
 				, downloadUrlPath.replace(TABNINE_UPDATE_SITE, fileFolderPath)
-		).getAbsolutePath());
+		);
+		System.out.println(coreFile.getAbsolutePath());
 		
 	}
 	
@@ -77,8 +67,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 			
 		} catch (Exception e) {
 			logMessage = logTitle + " - Failed: Unknown exception hanppend.";
-			System.err.println(logMessage);
-			e.printStackTrace();
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		}
@@ -101,7 +90,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 		// STEP Number Validate incoming parameters
 		if (TabNineLangUtils.isBlank(version)) {
 			String logMessage = "Fail to get download URL path, the given version is blank.";
-			System.err.println(logMessage);
+			TabNineLoggingUtils.error(logMessage);
 			throw new TabNineApplicationException(logMessage);
 			
 		}
@@ -147,8 +136,7 @@ public class TabNineCoreDownloaderBasicImpl implements TabNineCoreDownloader {
 			
 		} catch (Exception e) {
 			logMessage = logTitle + " - Failed: Unknown exception hanppend.";
-			System.err.println(logMessage);
-			e.printStackTrace();
+			TabNineLoggingUtils.error(logMessage, e);
 			throw new TabNineApplicationException(logMessage, e);
 			
 		}

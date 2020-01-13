@@ -13,6 +13,7 @@ import com.tabnine.eclipse.data.AutocompleteArgs;
 import com.tabnine.eclipse.data.AutocompleteResponse;
 import com.tabnine.eclipse.util.TabNineDocumentUtils;
 import com.tabnine.eclipse.util.TabNineLangUtils;
+import com.tabnine.eclipse.util.TabNineLoggingUtils;
 
 /**
  * The content assist processor for Generic Editor with TabNine 
@@ -57,14 +58,15 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 		IDocument document = viewer.getDocument();
 		AutocompleteArgs autocompleteArgs = TabNineDocumentUtils.extractAutocompleteArgs(offset, document, viewer, OPTION_COMPUTE_RANGE, null);
 		
-		// STEP Number Check the result has got
+		// STEP Number Check the result we got
 		if (autocompleteArgs == null) {
-			System.out.println("The autocomplete argument object is null."); // STUB Number Text
-			return null;
+			TabNineLoggingUtils.info("The autocomplete argument object is null.");
+			return TabNineLangUtils.toArray(TabNineDocumentUtils.EMPTY_PROPOSAL_LIST, ICompletionProposal.class);
 			
 		}
 		
 		// STEP Number Complete other settings
+		// TODO Number The ways to get editing file by active editor is not avaiable for eclipse generic editor, some other ways is needed for this problem
 		autocompleteArgs.setFilename(TabNineDocumentUtils.getPathOfCurrentlyEditingFile());
 		autocompleteArgs.setMaxNumResults(OPTION_MAX_NUM_RESULTS);
 		
@@ -73,7 +75,7 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 		
 		// STEP Number Generate proposals using the context and response, then return it
 		return TabNineLangUtils.toArray(
-				TabNineDocumentUtils.generateCompletionProposal(offset, document, viewer, response, OPTION_COMPUTE_RANGE)
+				TabNineDocumentUtils.generateCompletionProposal(offset, document, viewer, response, OPTION_COMPUTE_RANGE, false)
 				, ICompletionProposal.class
 		);
 		
@@ -102,7 +104,7 @@ public class TabNineContentAssistProcessor implements IContentAssistProcessor {
 	 */
 	public char[] getCompletionProposalAutoActivationCharacters() {
 		// TODO Auto-generated method stub
-		return null;
+		return "A".toCharArray();
 	}
 
 	/* (non-Javadoc)

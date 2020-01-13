@@ -12,6 +12,7 @@ import com.tabnine.eclipse.application.impl.TabNineApplicationBasicImpl;
 import com.tabnine.eclipse.data.AutocompleteArgs;
 import com.tabnine.eclipse.data.AutocompleteResponse;
 import com.tabnine.eclipse.util.TabNineDocumentUtils;
+import com.tabnine.eclipse.util.TabNineLoggingUtils;
 
 /**
  * The completion proposal computer using TabNine for Java text
@@ -61,9 +62,9 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 		// STEP Number Get the request from incoming context object
 		AutocompleteArgs autocompleteArgs = TabNineDocumentUtils.extractAutocompleteArgs(context, OPTION_COMPUTE_RANGE, null);
 		
-		// STEP Number Check the result has got
+		// STEP Number Check the result we got
 		if (autocompleteArgs == null) {
-			System.out.println("The autocomplete argument object is null."); // STUB Number Text
+			TabNineLoggingUtils.info("The autocomplete argument object is null.");
 			return null;
 			
 		}
@@ -76,7 +77,7 @@ public class TabNineJavaCompletionProposalComputer implements IJavaCompletionPro
 		AutocompleteResponse response = tabNineApplication.autocomplete(autocompleteArgs);
 		
 		// STEP Number Generate proposals using the context and response, then return it
-		return TabNineDocumentUtils.generateCompletionProposal(context, response, OPTION_COMPUTE_RANGE);
+		return TabNineDocumentUtils.generateCompletionProposal(context, response, OPTION_COMPUTE_RANGE, true);
 		
 	}
 

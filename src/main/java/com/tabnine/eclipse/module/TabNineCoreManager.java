@@ -14,8 +14,8 @@ public interface TabNineCoreManager {
 	
 	/** The probable folder names of TabNine core file  : List<String> TABNINE_CORE_FILE_FOLDER */
 	public static final List<String> TABNINE_CORE_FILE_FOLDER_NAMES = Arrays.asList(
-			"tabnine-core"
-			, "src/main/resources/tabnine-core"
+			"src/main/resources/tabnine-core"
+			, "tabnine-core"
 	);
 	
 	/** The most amount this manager will keep for the TabNine core : int LOCAL_TABNINE_CORE_FILE_LIMIT */
