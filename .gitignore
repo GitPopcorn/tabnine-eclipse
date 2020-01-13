@@ -1,0 +1,11 @@
+﻿# The ignore file list of tabnine-eclipse
+
+# Ignore the compile file and binary file
+/bin/
+/target/
+
+# Ignore the settings/configuration file of eclipse
+/.settings/
+
+# Ignore the tabnine core file using to test
+/src/main/resources/tabnine-core/
